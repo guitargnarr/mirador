@@ -76,7 +76,7 @@ Based on the provided context, I'll offer a more tailored assessment and recomme
 
 **Current Situation**
 
-* Profession: [COMPANY] [Professional Title], Medicare compliance
+* Profession: Company [Professional Title], Medicare compliance
 * Level of experience: Mid-level ( approx. 5-7 years)
 * Desired career goal: Leadership position or entrepreneurship in the healthcare industry
 * Current income and financial situation:

@@ -2,7 +2,7 @@
 
 ## Initial Prompt
 
-Develop strategic plan for transition from [Professional Title] to senior management role at [COMPANY] or similar healthcare organization, including skill development, leadership experience, and internal positioning strategies
+Develop strategic plan for transition from [Professional Title] to senior management role at Company or similar healthcare organization, including skill development, leadership experience, and internal positioning strategies
 
 ## Models Used
 

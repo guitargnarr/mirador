@@ -65,7 +65,7 @@ Top-tier AI companies actively hiring for remote positions:
 
 ### 1. Regulatory Expertise Foundation (15+ Years)
 - Deep healthcare compliance knowledge (HIPAA/CMS Guidelines)
-- Enterprise-wide risk management experience at [COMPANY]
+- Enterprise-wide risk management experience at Company
 - Proven track record: 40% efficiency improvements, zero critical defects
 - Monthly executive dashboards and audit management experience
 
@@ -98,7 +98,7 @@ The rare professional who can:
 - Foundation in technology-driven business solutions
 
 ### Phase 2: Enterprise Leadership (2016-2025)
-- Senior [Professional] at [COMPANY]
+- Senior Current Department Professional at Company
 - Compliance framework architecture for Medicare web properties
 - 40% efficiency improvements through automated risk assessment
 - Zero critical defects across e-Commerce and Data Modernization projects

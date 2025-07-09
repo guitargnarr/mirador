@@ -72,7 +72,7 @@ I can build upon the previous output by incorporating Matthew's specific context
 
 **Revised Assumptions:**
 
-1. Matthew is currently using the Mirador system to achieve a specific goal or set of goals related to his work as a [COMPANY] [Professional Title].
+1. Matthew is currently using the Mirador system to achieve a specific goal or set of goals related to his work as a Company [Professional Title].
 2. He has access to the necessary data and information required to make informed decisions, including his financial situation, family context, and cohabitation details.
 3. Matthew is looking for an opportunity to maximize value from his Mirador ufamily_member this week.
 
@@ -80,7 +80,7 @@ I can build upon the previous output by incorporating Matthew's specific context
 
 Considering Matthew's current situation, goals, and priorities, here are some key insights:
 
-* As a [COMPANY] [Professional Title], Matthew has built a PowerShell script for weekly vulnerability report automation, which saves hours and auto-generates quantitative email summaries.
+* As a Company [Professional Title], Matthew has built a PowerShell script for weekly vulnerability report automation, which saves hours and auto-generates quantitative email summaries.
 * He is also working on creating matplotlib graphs for organizational reports and aims to establish himself as a LinkedIn thought leader by the end of 2025.
 * Matthew's combined household income is $REDACTED, with his girlfriend earning $60,000. They have a daughter turning 8, who will be starting 2nd grade soon.
 * The couple is currently considering their options for a new home, with a target price range of $400,000+.
