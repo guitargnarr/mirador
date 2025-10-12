@@ -1,0 +1,18 @@
+#!/bin/bash
+# Enhanced Mirador Launcher
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [ "$1" == "metrics" ]; then
+    python3 "$SCRIPT_DIR/metrics_tracker.py" summary --days "${2:-7}"
+elif [ "$1" == "dashboard" ]; then
+    python3 "$SCRIPT_DIR/mirador_v2.py" dashboard
+elif [ "$1" == "automate" ]; then
+    python3 "$SCRIPT_DIR/automation_engine.py" start
+elif [ "$1" == "quality" ]; then
+    python3 "$SCRIPT_DIR/quality_assurance.py"
+elif [ "$1" == "memory" ]; then
+    python3 "$SCRIPT_DIR/memory_system.py" "${@:2}"
+else
+    python3 "$SCRIPT_DIR/mirador_v2.py" "$@"
+fi

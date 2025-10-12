@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets
+.env
+.env.local
+credentials.json
+token.pickle
+*.pem
+*.key
+
+# Test outputs
+test_logs/
+outputs/
+*.test
+
+# Backups
+*backup*
+*archive*
+*.bak
+
+# Node (if applicable)
+node_modules/
+package-lock.json
+
+# Build artifacts
+*.whl
+*.egg
