@@ -57,7 +57,7 @@ with tab1:
     col1, col2 = st.columns([3, 1])
 
     with col1:
-        selected_model = st.select box(
+        selected_model = st.selectbox(
             "Select Model",
             options=model_names,
             index=0 if model_names else None
