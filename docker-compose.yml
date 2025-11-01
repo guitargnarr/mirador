@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  mirador:
+    build: .
+    ports:
+      - "8501:8501"  # Streamlit UI
+      - "11434:11434" # Ollama API
+    volumes:
+      - mirador_data:/root/.ollama  # Persist downloaded models
+      - mirador_outputs:/root/mirador_outputs  # Persist outputs
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    command: web
+
+volumes:
+  mirador_data:
+  mirador_outputs:

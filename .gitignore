@@ -4,12 +4,28 @@ __pycache__/
 *$py.class
 *.so
 .Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
 venv/
 env/
 ENV/
-*.egg-info/
-dist/
-build/
+.venv
 
 # IDEs
 .vscode/
@@ -17,42 +33,29 @@ build/
 *.swp
 *.swo
 *~
-
-# OS
 .DS_Store
-Thumbs.db
 
-# Logs
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Outputs
+mirador_outputs/
+outputs/
 *.log
-logs/
+test_outputs/
 
-# Databases
-*.db
-*.sqlite
-*.sqlite3
+# Model files (large)
+*.gguf
+*.bin
 
-# Secrets
+# Personal/sensitive
 .env
 .env.local
-credentials.json
-token.pickle
-*.pem
-*.key
-
-# Test outputs
-test_logs/
-outputs/
-*.test
-
-# Backups
-*backup*
-*archive*
-*.bak
-
-# Node (if applicable)
-node_modules/
-package-lock.json
+config/local_*.yaml
 
 # Build artifacts
 *.whl
-*.egg
+*.tar.gz
