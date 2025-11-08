@@ -5,10 +5,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="mirador-core",
-    version="2.1.1",
+    version="2.1.2",
     author="Matthew David Scott",
     author_email="matthewdscott7@gmail.com",
-    description="Unified core library for the Mirador AI ecosystem",
+    description="Privacy-first AI orchestration - 64 agents running 100% locally with zero cloud dependencies (HIPAA-ready)",
+    keywords=[
+        "ai", "llm", "ollama", "privacy", "hipaa", "local-ai",
+        "ai-agents", "orchestration", "healthcare-ai", "mlops"
+    ],
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/guitargnarr/mirador",
