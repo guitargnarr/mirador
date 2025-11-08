@@ -4,23 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-## Python Environment
+## ✅ Python Environment (Updated October 22, 2025)
 
-**Python setup:** See `~/.claude/templates/PYTHON_SETUP.md`
-**Virtual env:** See `~/.claude/templates/VIRTUAL_ENV.md`
-**Common issues:** See `~/.claude/templates/COMMON_ISSUES.md`
+**VERIFIED:** Python 3.14.0 installed and working correctly
 
-### Current Project Setup
+### Current Setup
 
-**Python Version:** 3.14.0 (recommended)
+**Python Version:** 3.14.0 (recommended for this project)
 - **Location:** `/Library/Frameworks/Python.framework/Versions/3.14/bin/python3`
 - **Status:** ✅ Fully operational
 
-**Note:** This project primarily uses shell scripts and Ollama. Python is only needed for:
-- Testing scripts (`tests/test_*.py`)
-- Constraint validation (`constraint_validator.py`)
-- Context management (`context_manager.py`)
-- Memory system (`ai_memory/init_db.py`)
+### Verification (Run at project start)
+
+```bash
+python3 --version  # Should show: Python 3.14.0
+python3 -c "print('Python is working')"  # Should produce output
+```
+
+**If verification fails:** See global CLAUDE.md (~/.claude/CLAUDE.md) for troubleshooting.
 
 ### Virtual Environment (If needed for Python scripts)
 
@@ -35,8 +36,16 @@ source venv/bin/activate
 
 # Install any Python dependencies
 pip install --upgrade pip
-pip install -r requirements.txt  # orjson==3.9.15 (3.10+ has compatibility issues)
+# pip install -r requirements.txt (if exists)
 ```
+
+### Python Corruption Issue (RESOLVED October 22, 2025)
+
+**Problem (March 6 - October 22, 2025):** Python 3.13 binary was corrupted (0 bytes), causing all Python commands to produce no output.
+
+**Solution:** Installed Python 3.14.0, cleaned shell configuration, upgraded incompatible packages. All Python projects now functional.
+
+**See global CLAUDE.md (~/.claude/CLAUDE.md) for complete incident details.**
 
 ---
 
@@ -49,7 +58,7 @@ pip install -r requirements.txt  # orjson==3.9.15 (3.10+ has compatibility issue
 
 # Universal runner with format options
 ./mirador_universal_runner_v2.sh <chain_type> "Your prompt" [format]
-# Chain types: life_optimization, business_acceleration, creative_breakthrough,
+# Chain types: life_optimization, business_acceleration, creative_breakthrough, 
 #              relationship_harmony, technical_mastery, strategic_synthesis
 # Formats: quick, summary, detailed (default), export
 
@@ -147,7 +156,7 @@ User Query → Smart Router → Chain Selection → Model Pipeline → Constrain
 
 ### Key Components
 
-1. **Entry Points**
+1. **Entry Points** 
    - `mirador-smart-v2`: Smart routing based on query analysis
    - `mirador_universal_runner_v2.sh`: Universal chain runner
    - `mirador_universal_runner_v3_optimized.sh`: Optimized with diverse models
@@ -157,7 +166,7 @@ User Query → Smart Router → Chain Selection → Model Pipeline → Constrain
    - Domain experts: Financial, music, health, Louisville-specific
    - Strategy models: Planning and synthesis
    - Implementation models: Actionable steps
-   - **Base LLMs**:
+   - **Base LLMs**: 
      - Llama 3.2 (primary - ~70% of models)
      - Gemma 2 27B (Google's efficient reasoning)
      - Qwen 2.5 32B (Alibaba's multilingual)
