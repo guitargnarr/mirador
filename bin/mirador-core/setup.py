@@ -5,13 +5,13 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="mirador-core",
-    version="2.0.0",
-    author="User",
-    author_email="contact@userscott.com",
+    version="2.1.1",
+    author="Matthew David Scott",
+    author_email="matthewdscott7@gmail.com",
     description="Unified core library for the Mirador AI ecosystem",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/your-username/mirador",
+    url="https://github.com/guitargnarr/mirador",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -26,17 +26,7 @@ setup(
     ],
     python_requires=">=3.8",
     install_requires=[
-        "rich>=13.7.0",
-        "streamlit>=1.28.0",
-        "flask>=2.3.0",
-        "plotly>=5.18.0",
-        "pandas>=2.0.0",
-        "sqlite3-api>=2.0.0",
-        "requests>=2.31.0",
-        "chromadb>=0.4.0",
-        "sentence-transformers>=2.2.0",
-        "tiktoken>=0.5.0",
-        "watchdog>=3.0.0",
+        # Core package uses only Python stdlib - no external dependencies required
     ],
     extras_require={
         "dev": [
@@ -46,7 +36,24 @@ setup(
             "flake8>=6.0.0",
             "mypy>=1.5.0",
         ],
+        "ui": [
+            "streamlit>=1.28.0",
+            "plotly>=5.18.0",
+        ],
         "web": [
+            "gradio>=3.50.0",
+            "fastapi>=0.100.0",
+            "uvicorn>=0.23.0",
+        ],
+        "vector": [
+            "chromadb>=0.4.0",
+            "sentence-transformers>=2.2.0",
+        ],
+        "all": [
+            "streamlit>=1.28.0",
+            "plotly>=5.18.0",
+            "chromadb>=0.4.0",
+            "sentence-transformers>=2.2.0",
             "gradio>=3.50.0",
             "fastapi>=0.100.0",
             "uvicorn>=0.23.0",
