@@ -826,8 +826,8 @@ The future of AI is not about bigger models or cloud dependencies - it's about i
 - [Security Considerations](./security/local-ai.md)
 
 ### Community
-- GitHub Issues: [github.com/guitargnar/mirador/issues](https://github.com/guitargnar/mirador/issues)
-- Discussions: [github.com/guitargnar/mirador/discussions](https://github.com/guitargnar/mirador/discussions)
+- GitHub Issues: [github.com/guitargnarr/mirador/issues](https://github.com/guitargnarr/mirador/issues)
+- Discussions: [github.com/guitargnarr/mirador/discussions](https://github.com/guitargnarr/mirador/discussions)
 
 ---
 

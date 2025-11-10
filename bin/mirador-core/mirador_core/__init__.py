@@ -9,10 +9,10 @@ This package provides shared functionality across all Mirador tools:
 - Context management and caching (mirador_core.context)
 - Constraint validation for time/energy/financial allocations (mirador_core.constraints)
 
-Version: 2.1.0
+Version: 2.1.1
 """
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 __author__ = "Matthew David Scott"
 
 # Core components

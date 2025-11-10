@@ -54,7 +54,7 @@ mirador/
 
 ## GitHub Repository Settings
 
-The repository is now public at: https://github.com/guitargnar/mirador
+The repository is now public at: https://github.com/guitargnarr/mirador
 
 ### Recommended GitHub Topics
 Add these topics to improve discoverability:
