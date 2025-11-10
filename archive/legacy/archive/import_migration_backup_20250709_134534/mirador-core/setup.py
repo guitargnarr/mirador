@@ -11,7 +11,7 @@ setup(
     description="Unified core library for the Mirador AI ecosystem",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/guitargnar/mirador",
+    url="https://github.com/guitargnarr/mirador",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",

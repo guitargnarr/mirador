@@ -162,7 +162,7 @@ async def test_dashboard():
             github_button = await page.query_selector("a:has-text('GitHub')")
             if github_button:
                 href = await github_button.get_attribute("href")
-                if "github.com/guitargnar" in href:
+                if "github.com/guitargnarr" in href:
                     print(f"  ✅ GitHub URL: Correct ({href})")
                 else:
                     print(f"  ❌ GitHub URL: Incorrect ({href})")

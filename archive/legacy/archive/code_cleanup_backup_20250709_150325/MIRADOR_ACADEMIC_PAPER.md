@@ -147,7 +147,7 @@ The watchtower stands ready. The question is: what will you observe from yours?
 
 ---
 
-*Mirador is actively developed and available at [github.com/guitargnar/mirador](https://github.com/guitargnar/mirador). For collaboration inquiries or implementation guidance, connect via GitHub.*
+*Mirador is actively developed and available at [github.com/guitargnarr/mirador](https://github.com/guitargnarr/mirador). For collaboration inquiries or implementation guidance, connect via GitHub.*
 
 ## Appendix: Performance Metrics
 

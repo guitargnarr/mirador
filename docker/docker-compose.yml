@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  mirador:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILD_DATE: ${BUILD_DATE:-2025-11-10}
+        VCS_REF: ${VCS_REF:-main}
+    image: guitargnarr/mirador-systems:latest
+    container_name: mirador-healthcare-ai
+    ports:
+      - "8000:8000"    # Mirador API
+      - "11434:11434"  # Ollama API (optional)
+    volumes:
+      - mirador_data:/app/data        # Persistent data
+      - mirador_logs:/app/logs        # Log files
+      - mirador_cache:/app/cache      # Query cache
+    environment:
+      - MIRADOR_CACHE_PATH=/app/cache/mirador_cache.db
+      - MIRADOR_LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - OLLAMA_KEEP_ALIVE=600
+      - OLLAMA_NUM_PARALLEL=4
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 16G
+        reservations:
+          cpus: '2'
+          memory: 8G
+
+volumes:
+  mirador_data:
+    driver: local
+  mirador_logs:
+    driver: local
+  mirador_cache:
+    driver: local
+
+# For Norton Healthcare deployment:
+# 1. Copy this file to Norton server
+# 2. Run: docker-compose up -d
+# 3. Access: http://localhost:8000
+# 4. Health check: http://localhost:8000/health
+# 5. Query endpoint: POST http://localhost:8000/query

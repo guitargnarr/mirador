@@ -103,7 +103,7 @@ The Mirador logo features a stylized watchtower with observation beams, symboliz
   **Observe. Adapt. Remain.**
   
   [![License](https://img.shields.io/badge/license-MIT-sage.svg)](LICENSE)
-  [![Status](https://img.shields.io/badge/status-active-terracotta.svg)](https://github.com/guitargnar/mirador)
+  [![Status](https://img.shields.io/badge/status-active-terracotta.svg)](https://github.com/guitargnarr/mirador)
 </div>
 ```
 

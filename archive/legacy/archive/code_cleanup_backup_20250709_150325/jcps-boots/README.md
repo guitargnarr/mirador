@@ -86,7 +86,7 @@ What started as one parent's crisis became a powerful tool for any family naviga
 
 ```bash
 # Clone the repository
-git clone https://github.com/guitargnar/jcps-boots.git
+git clone https://github.com/guitargnarr/jcps-boots.git
 cd jcps-boots
 
 # Install dependencies
@@ -171,7 +171,7 @@ MIT License - Free to use, modify, and share. Because every child deserves a cha
   
   <p>Built with ❤️ by parents, for parents in Louisville, KY</p>
   
-  <a href="https://github.com/guitargnar/jcps-boots/issues">Report Issue</a> •
-  <a href="https://github.com/guitargnar/jcps-boots/discussions">Join Discussion</a> •
+  <a href="https://github.com/guitargnarr/jcps-boots/issues">Report Issue</a> •
+  <a href="https://github.com/guitargnarr/jcps-boots/discussions">Join Discussion</a> •
   <a href="mailto:your-email@example.com">Contact</a>
 </div>

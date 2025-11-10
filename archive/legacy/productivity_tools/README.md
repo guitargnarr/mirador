@@ -6,9 +6,9 @@
   ### Transform hours into minutes with Python-powered automation
   
   [![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](https://www.python.org)
-  [![No Dependencies](https://img.shields.io/badge/Dependencies-None-green.svg)](https://github.com/guitargnar/advocate)
-  [![Time Saved](https://img.shields.io/badge/Time%20Saved-3--4%20hours%2Fday-brightgreen.svg)](https://github.com/guitargnar/advocate)
-  [![Tools](https://img.shields.io/badge/Tools-6%20Powerful%20Scripts-orange.svg)](https://github.com/guitargnar/advocate)
+  [![No Dependencies](https://img.shields.io/badge/Dependencies-None-green.svg)](https://github.com/guitargnarr/advocate)
+  [![Time Saved](https://img.shields.io/badge/Time%20Saved-3--4%20hours%2Fday-brightgreen.svg)](https://github.com/guitargnarr/advocate)
+  [![Tools](https://img.shields.io/badge/Tools-6%20Powerful%20Scripts-orange.svg)](https://github.com/guitargnarr/advocate)
   [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 </div>
 
@@ -290,11 +290,11 @@ Explore the journey from scripts to platform in our [Enhancement Roadmap](ENHANC
   
   <br><br>
   
-  <a href="https://github.com/guitargnar/advocate/issues">Report Bug</a>
+  <a href="https://github.com/guitargnarr/advocate/issues">Report Bug</a>
   ·
-  <a href="https://github.com/guitargnar/advocate/issues">Request Feature</a>
+  <a href="https://github.com/guitargnarr/advocate/issues">Request Feature</a>
   ·
-  <a href="https://github.com/guitargnar/advocate/fork">Fork Project</a>
+  <a href="https://github.com/guitargnarr/advocate/fork">Fork Project</a>
   ·
-  <a href="https://github.com/guitargnar/mirador">Explore Mirador</a>
+  <a href="https://github.com/guitargnarr/mirador">Explore Mirador</a>
 </div>

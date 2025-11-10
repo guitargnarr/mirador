@@ -84,7 +84,7 @@ The productivity tools can be supercharged with AI capabilities from the Mirador
 ### Step 1: Install Mirador (5 minutes)
 ```bash
 cd ~/Projects
-git clone https://github.com/guitargnar/mirador.git
+git clone https://github.com/guitargnarr/mirador.git
 cd mirador
 
 # Install Ollama (if not already installed)

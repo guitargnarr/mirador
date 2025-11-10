@@ -52,11 +52,11 @@ sudo pacman -S python python-pip
 
 ```bash
 # Using git
-git clone https://github.com/guitargnar/jcps-boots.git
+git clone https://github.com/guitargnarr/jcps-boots.git
 cd jcps-boots
 
 # Or download ZIP from GitHub
-# https://github.com/guitargnar/jcps-boots/archive/refs/heads/main.zip
+# https://github.com/guitargnarr/jcps-boots/archive/refs/heads/main.zip
 ```
 
 ### 3. Set Up Virtual Environment (Recommended)

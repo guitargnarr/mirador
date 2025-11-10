@@ -10,10 +10,10 @@
 *"Somewhere in the rests between those melodic breakdowns, you'll find little seeds. Those seeds are hope."*  
 — **From Annapurna's journey, reflecting life itself**
 
-[![Version](https://img.shields.io/badge/Version-5.0.0-gold?style=for-the-badge)](https://github.com/guitargnar/mirador/releases)
-[![Context Integration](https://img.shields.io/badge/Context-Complete%20Story-purple?style=for-the-badge&logo=brain)](https://github.com/guitargnar/mirador)
-[![Privacy](https://img.shields.io/badge/Privacy-Local%20Only-green?style=for-the-badge&logo=shield)](https://github.com/guitargnar/mirador)
-[![Chains](https://img.shields.io/badge/Universal%20Chains-6-blue?style=for-the-badge&logo=link)](https://github.com/guitargnar/mirador)
+[![Version](https://img.shields.io/badge/Version-5.0.0-gold?style=for-the-badge)](https://github.com/guitargnarr/mirador/releases)
+[![Context Integration](https://img.shields.io/badge/Context-Complete%20Story-purple?style=for-the-badge&logo=brain)](https://github.com/guitargnarr/mirador)
+[![Privacy](https://img.shields.io/badge/Privacy-Local%20Only-green?style=for-the-badge&logo=shield)](https://github.com/guitargnarr/mirador)
+[![Chains](https://img.shields.io/badge/Universal%20Chains-6-blue?style=for-the-badge&logo=link)](https://github.com/guitargnarr/mirador)
 
 **Built from crisis. Proven in transformation. Orchestrating hope.**
 
@@ -91,7 +91,7 @@ Mirador's six universal chains represent different approaches to life's complex 
 
 ```bash
 # Clone and navigate
-git clone https://github.com/guitargnar/mirador.git
+git clone https://github.com/guitargnarr/mirador.git
 cd mirador
 
 # Life optimization with complete context
@@ -274,7 +274,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Mirador doesn't just process your requests—it understands your journey.**
 
-[Experience the Transformation](#-quick-start) • [Explore the Story](matthew-journey-interactive.html) • [Join the Evolution](https://github.com/guitargnar/mirador)
+[Experience the Transformation](#-quick-start) • [Explore the Story](matthew-journey-interactive.html) • [Join the Evolution](https://github.com/guitargnarr/mirador)
 
 *Built with privacy. Powered by pattern recognition. Orchestrated with hope.* 🚀
 

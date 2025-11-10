@@ -762,5 +762,5 @@ The 99.3% success rate across 450+ real-world analyses validates the architectur
 
 ---
 
-*For implementation details and source code: [github.com/guitargnar/mirador](https://github.com/guitargnar/mirador)*  
+*For implementation details and source code: [github.com/guitargnarr/mirador](https://github.com/guitargnarr/mirador)*  
 *Technical inquiries: matthew@mirador.ai*
