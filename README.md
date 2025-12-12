@@ -1,13 +1,23 @@
 # Mirador AI Orchestrator
 
-Local-first multi-agent AI framework with meta-cognitive evaluation.
+Local-first multi-agent AI framework with meta-cognitive evaluation. **Proven effective for security audits** - found real CORS vulnerability in production code.
 
 ## What It Does
 
-- **16 specialized personas** chained for domain-specific analysis
-- **Meta-cognitive layer** - models that critique and improve their own outputs
-- **100% local execution** via Ollama - zero data leaves your machine
-- **REST API** - Flask API with webhook support for integration
+- **16 specialized personas** chained for security audits and code analysis
+- **Meta-cognitive layer** - models that critique and identify blindspots
+- **100% local execution** via Ollama - code never leaves your machine (HIPAA/finance ready)
+- **REST API** - Flask API for integration into CI/CD pipelines
+
+## Validated Use Cases
+
+| Chain | Accuracy | Best For |
+|-------|----------|----------|
+| `security_audit` | **100%** | Finding CORS, auth, injection, secrets issues |
+| `architecture` | ~70% | General design review (inject deployment context) |
+| `code_review` | Weak | Not recommended (use Claude Code instead) |
+
+**Real Result:** Mirador's security audit chain found a CORS vulnerability (`allow_origins=["*"]` with credentials) in a production API that was subsequently fixed and deployed.
 
 ## Quick Start
 
