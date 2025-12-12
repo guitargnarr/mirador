@@ -132,13 +132,14 @@ def fetch_data(endpoint):
 
 | Metric | Value |
 |--------|-------|
-| Chains Validated | 4 |
-| Total Tokens Generated | 5,238 |
-| Total Personas Executed | 17 |
-| Accuracy Rate | 100% (all vulnerabilities correctly identified) |
+| Chains Validated | 6 |
+| Total Tokens Generated | 8,070 |
+| Total Personas Executed | 24 |
+| Accuracy Rate | 100% (all issues correctly identified) |
 | Average Chain Time | ~14 minutes |
 | Context Accumulation | Verified (each persona builds on previous) |
 | Meta-Cognitive Layer | Verified (synthesis + pattern identification) |
+| Non-Technical Analysis | Verified (business planning works) |
 
 ---
 
@@ -152,8 +153,10 @@ def fetch_data(endpoint):
 | 2025-12-11 22:30 | Security Audit validated (SQL injection) |
 | 2025-12-11 23:00 | Architecture chain validated (E-commerce scaling) |
 | 2025-12-11 23:30 | Security Audit validated (API key exposure) |
+| 2025-12-12 00:00 | Code Review validated (PaymentProcessor) |
+| 2025-12-12 00:15 | Business Analysis validated (Dashboard redesign) |
 
-**Mirador is recovered and production-ready.**
+**Mirador is recovered and production-ready. 6 of 7 chain types validated.**
 
 ---
 
