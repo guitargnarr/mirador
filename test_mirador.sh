@@ -54,8 +54,8 @@ fi
 echo ""
 echo "[4/4] Checking personas..."
 PERSONAS=$(curl -s http://localhost:5001/api/personas 2>/dev/null)
-COUNT=$(echo "$PERSONAS" | python3 -c "import sys,json; print(len(json.load(sys.stdin).get('chain_order',[])))" 2>/dev/null || echo "0")
-echo "OK: Found $COUNT personas in chain"
+COUNT=$(echo "$PERSONAS" | python3 -c "import sys,json; print(json.load(sys.stdin).get('total', 0))" 2>/dev/null || echo "0")
+echo "OK: Found $COUNT personas loaded"
 echo ""
 
 echo "=== All Tests Passed ==="
