@@ -13,8 +13,10 @@ from typing import Dict, Optional, List, Any, Union
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
-# Import the AIFramework
-from ai_framework.framework import AIFramework
+# Import the AIFramework from root framework.py
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from framework import AIFramework
 
 # Configure logging
 # Ensure log directory exists

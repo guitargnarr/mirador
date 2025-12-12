@@ -214,6 +214,9 @@ model_cache/
 
 # Mirador 2.0 Specific
 # ===========================================================
+# Personal documentation and assets (DO NOT COMMIT)
+Documentation and Saved Assets/
+
 # Enhanced framework data
 .mirador/
 !.mirador/config.json.example
