@@ -321,6 +321,8 @@ def root():
             "/api/chains/<id>": "Get chain details",
             "/api/ocean": "OCEAN personality profile",
             "/api/stats": "System statistics",
+            "/api/audit": "Self-audit results (July 2025)",
+            "/api/architecture": "Architecture documentation",
             "/api/run": "Run chain (demo mode)",
             "/api/run/<persona>": "Run single persona (demo mode)"
         },
