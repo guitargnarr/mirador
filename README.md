@@ -1,93 +1,122 @@
-# Mirador AI Orchestrator
+# Mirador
 
-Local-first multi-agent AI framework with meta-cognitive evaluation. **Proven effective for security audits** - found real CORS vulnerability in production code.
+**89+ specialized personas. One conductor. Local execution. Personality-aware intelligence.**
 
-## What It Does
+An AI orchestration framework built because no existing tool could handle the complexity of actual life.
 
-- **16 specialized personas** chained for security audits and code analysis
-- **Meta-cognitive layer** - models that critique and identify blindspots
-- **100% local execution** via Ollama - code never leaves your machine (HIPAA/finance ready)
-- **REST API** - Flask API for integration into CI/CD pipelines
+## The Paradigm
 
-## Validated Use Cases
+Traditional AI tools fail at complex, multi-domain problems. They lack context persistence, personality awareness, and the ability to route tasks to specialized capabilities. Life doesn't fit in a single prompt.
 
-| Chain | Accuracy | Best For |
-|-------|----------|----------|
-| `security_audit` | **100%** | Finding CORS, auth, injection, secrets issues |
-| `architecture` | ~70% | General design review (inject deployment context) |
-| `code_review` | Weak | Not recommended (use Claude Code instead) |
+Mirador implements a **conductor-based orchestration pattern**. One meta-agent analyzes incoming tasks and dynamically assembles chains of specialized personas. Each persona has domain expertise, tuned parameters, and awareness of the user's personality profile (OCEAN/Big Five integration).
 
-**Real Result:** Mirador's security audit chain found a CORS vulnerability (`allow_origins=["*"]` with credentials) in a production API that was subsequently fixed and deployed.
+## By the Numbers
 
-## Quick Start
-
-```bash
-# 1. Prerequisites
-# Install Ollama: https://ollama.ai
-
-# 2. Clone
-git clone https://github.com/guitargnarr/mirador
-cd mirador
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Start API
-python api.py
-
-# 5. Verify
-curl http://localhost:5001/api/health
-```
-
-## Test Harness
-
-Verify your installation with the included test script:
-
-```bash
-./test_mirador.sh
-```
+| Metric | Count |
+|--------|-------|
+| Specialized Personas | 89+ |
+| Ollama Models | 49 installed |
+| Lines of Python | 30,000+ |
+| Shell Scripts | 877 |
+| Execution | 100% local |
 
 ## Architecture
 
 ```
 User Query
-    |
-    v
-+---------------------------------------------------+
-|  Flask API (api.py:5001)                          |
-|  - /api/run (chain execution)                     |
-|  - /api/run/<persona> (single model)              |
-|  - /api/webhooks (event notifications)            |
-+---------------------------------------------------+
-    |
-    v
-+---------------------------------------------------+
-|  AIFramework (framework.py)                       |
-|  - Session management                             |
-|  - Chain orchestration                            |
-|  - Output persistence                             |
-+---------------------------------------------------+
-    |
-    v
-+---------------------------------------------------+
-|  Persona Chain (16 specialists)                   |
-|  master_coder -> code_reviewer -> ... -> ai_specialist |
-+---------------------------------------------------+
-    |
-    v
-+---------------------------------------------------+
-|  Meta-Cognitive Layer                             |
-|  - cross_model_synthesizer: Pattern identification|
-|  - feedback_loop_optimizer: Output refinement     |
-|  - mirador_self_reflection_guardian: Blindspot ID |
-+---------------------------------------------------+
-    |
-    v
-+---------------------------------------------------+
-|  Ollama (Local LLM Runtime)                       |
-|  - llama3.2, phi4, gemma2:9b, mistral:7b         |
-|  - Custom modelfiles with tuned parameters        |
-+---------------------------------------------------+
+    │
+    ▼
+┌───────────────────────────────────────────────────┐
+│  Conductor Agent (conductor.py)                   │
+│  - Analyzes task requirements                     │
+│  - Selects optimal persona chain                  │
+│  - Routes with sub-second latency                 │
+└───────────────────────────────────────────────────┘
+    │
+    ▼
+┌───────────────────────────────────────────────────┐
+│  Mesfamily_member Bus (mesfamily_member_bus.py)                     │
+│  - Bidirectional specialist communication         │
+│  - Session management with UUID                   │
+│  - Query caching & circular dependency detection  │
+└───────────────────────────────────────────────────┘
+    │
+    ▼
+┌───────────────────────────────────────────────────┐
+│  Persona Chains (89+ specialists)                 │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ │
+│  │   Guitar    │ │  Financial  │ │  Security   │ │
+│  │  Experts    │ │  Planning   │ │   Audit     │ │
+│  └─────────────┘ └─────────────┘ └─────────────┘ │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ │
+│  │ Louisville  │ │   Health    │ │    Code     │ │
+│  │   Market    │ │  Wellness   │ │   Review    │ │
+│  └─────────────┘ └─────────────┘ └─────────────┘ │
+└───────────────────────────────────────────────────┘
+    │
+    ▼
+┌───────────────────────────────────────────────────┐
+│  Meta-Cognitive Layer                             │
+│  - cross_model_synthesizer: Pattern identification│
+│  - feedback_loop_optimizer: Output refinement     │
+│  - self_reflection_guardian: Blindspot detection  │
+└───────────────────────────────────────────────────┘
+    │
+    ▼
+┌───────────────────────────────────────────────────┐
+│  Ollama (Local LLM Runtime)                       │
+│  llama3.2, phi4, qwen2.5, deepseek-r1, gemma2    │
+└───────────────────────────────────────────────────┘
+```
+
+## Persona Categories
+
+### Domain Specialists
+
+| Category | Example Personas |
+|----------|------------------|
+| **Music & Guitar** | `guitar_expert_precise`, `guitar_tone_architect`, `master_guitar_instructor`, `performance_anxiety_coach` |
+| **Career & Market** | `louisville_expert_v2`, `louisville-job-market`, `local_market_expert`, `opportunity_identification_specialist` |
+| **Financial** | `financial_planning_expert_v6`, `financial_calculator`, `decision_enhancer`, `decision_simplifier_v2` |
+| **Code & Security** | `code-executor`, `elite-frontend`, `fact_validation_specialist`, `security_expert` |
+| **Health & Wellness** | `health_wellness_optimizer`, `touring_readiness_coach`, `productivity_optimizer` |
+
+### Meta-Cognitive Layer
+
+| Model | Function |
+|-------|----------|
+| `cross_model_synthesizer` | Identifies patterns across specialist outputs |
+| `mirador_self_reflection_guardian` | Detects blindspots and biases |
+| `feedback_loop_optimizer` | Refines outputs iteratively |
+| `instruction_generation_specialist` | Creates actionable next steps |
+
+## OCEAN Personality Integration
+
+Mirador integrates Big Five personality traits to personalize recommendations:
+
+- **Openness** → Creative Innovation chains
+- **Conscientiousness** → Family-Conscious Planning
+- **Extraversion** → Depth-Focused Networking
+- **Agreeableness** → Values-Based Leadership
+- **Neuroticism** → Resilience/Adaptive strategies
+
+Personality data shapes which specialists activate and how they frame recommendations.
+
+## Quick Start
+
+```bash
+# 1. Install Ollama
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# 2. Clone & Install
+git clone https://github.com/guitargnarr/mirador
+cd mirador && pip install -r requirements.txt
+
+# 3. Start API
+python api.py
+
+# 4. Verify
+curl http://localhost:5001/api/health
 ```
 
 ## API Endpoints
@@ -95,40 +124,96 @@ User Query
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/health` | GET | Health check |
-| `/api/personas` | GET | List all personas and chain order |
-| `/api/sessions` | GET | List available sessions |
-| `/api/run` | POST | Run full chain with input |
-| `/api/run/<persona_id>` | POST | Run single persona |
+| `/api/personas` | GET | List all personas |
+| `/api/run` | POST | Run chain with input |
+| `/api/run/<persona>` | POST | Run single persona |
 | `/api/webhooks` | GET/POST | Webhook management |
 
-## Example Ufamily_member
+## Advanced Features
+
+### Hybrid Chains
+Combine multiple base LLMs for comprehensive analysis:
 
 ```bash
-# Run a single persona
-curl -X POST http://localhost:5001/api/run/master_coder \
-  -H "Content-Type: application/json" \
-  -d '{"input": "Write a Python function to validate email addresses"}'
-
-# Run a chain segment
-curl -X POST http://localhost:5001/api/run \
-  -H "Content-Type: application/json" \
-  -d '{"input": "Review this code for security issues", "start_at": "code_reviewer", "end_at": "security_expert"}'
+./bin/mirador_hybrid_chains.sh synthesis "Complex query" --quality
+./bin/mirador_hybrid_chains.sh technical "Architecture question"
+./bin/mirador_hybrid_chains.sh decision "Should I do X or Y?"
 ```
 
-## Research Alignment
+### RAG Chains
+Document analysis with Command-R:
 
-Mirador implements meta-cognitive patterns aligned with current AI agent research:
+```bash
+./bin/mirador_rag_chain.sh document "Key findings?" /path/to/doc.pdf
+./bin/mirador_rag_chain.sh code "Explain architecture" /path/to/codebase
+```
 
-- [Microsoft AI Agents Curriculum - Metacognition](https://microsoft.github.io/ai-agents-for-beginners/09-metacognition/)
-- [Honda Research - Meta-Cognitive Agentic AI Systems](https://usa.honda-ri.com/-/meta-cognitive-agentic-ai-systems)
-- [Self-Evolving Agents (arxiv:2508.00271)](https://arxiv.org/abs/2508.00271)
+### Auto Router
+Intelligent query routing:
+
+```bash
+./bin/mirador_auto_router.sh "your query" --verbose
+```
+
+### Smart Chain Execution
+
+```bash
+# Universal runner with format options
+./bin/mirador_universal_runner_v3_optimized.sh life_optimization "Your prompt" detailed
+
+# Quick interface
+./bin/mirador-ez chain "Your query" model1 model2 model3
+
+# Smart routing
+./bin/mirador-smart-v2 "Help me with career planning"
+```
+
+## Core Components
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `src/ai_framework/framework.py` | 28,421 | Main orchestration |
+| `src/ai_framework/conductor.py` | 16,709 | Dynamic task routing |
+| `src/ai_framework/core/mesfamily_member_bus.py` | 25,567 | Agent communication |
+| `src/ai_framework/core/specialist_handler.py` | 20,762 | Model invocation |
+| `src/ai_framework/core/intervention_manager.py` | 33,267 | Human-in-the-loop |
+| `api.py` | 558 | Flask REST API |
+
+## Validated Results
+
+| Chain | Accuracy | Best For |
+|-------|----------|----------|
+| `security_audit` | **100%** | CORS, auth, injection, secrets |
+| `life_optimization` | High | Multi-domain planning |
+| `architecture` | ~70% | Design review |
+
+**Real Result:** Mirador's security audit chain found a CORS vulnerability (`allow_origins=["*"]` with credentials) in a production API that was subsequently fixed and deployed.
+
+## Philosophy
+
+AI should augment human capability, not replace human judgment. Mirador runs locally because privacy is non-negotiable. It's personality-aware because generic advice is useless advice. It chains specialists because no single model can do everything well.
+
+This isn't just another AI tool. It's a personal intelligence amplifier.
 
 ## Requirements
 
 - Python 3.11+
 - Ollama installed and running
 - ~50GB disk space for models
+- Apple Silicon recommended (M-series)
+
+## Research Alignment
+
+Mirador implements meta-cognitive patterns aligned with current AI agent research:
+
+- [Microsoft AI Agents - Metacognition](https://microsoft.github.io/ai-agents-for-beginners/09-metacognition/)
+- [Honda Research - Meta-Cognitive Agentic AI](https://usa.honda-ri.com/-/meta-cognitive-agentic-ai-systems)
+- [Self-Evolving Agents (arxiv:2508.00271)](https://arxiv.org/abs/2508.00271)
 
 ## License
 
 MIT
+
+---
+
+**Live Demo:** [vercel-demo-flame.vercel.app](https://vercel-demo-flame.vercel.app) | **Landing Page:** [mirador-9kfgysimq-matthew-scotts-projects-1dc9743e.vercel.app](https://mirador-9kfgysimq-matthew-scotts-projects-1dc9743e.vercel.app)
