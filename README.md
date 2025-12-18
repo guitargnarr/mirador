@@ -216,4 +216,30 @@ MIT
 
 ---
 
-**Live Demo:** [vercel-demo-flame.vercel.app](https://vercel-demo-flame.vercel.app) | **Landing Page:** [mirador-9kfgysimq-matthew-scotts-projects-1dc9743e.vercel.app](https://mirador-9kfgysimq-matthew-scotts-projects-1dc9743e.vercel.app)
+## Live Resources
+
+| Resource | URL |
+|----------|-----|
+| **API (Render)** | [mirador-xva2.onrender.com](https://mirador-xva2.onrender.com) |
+| **Landing Page** | [mirador-9kfgysimq-matthew-scotts-projects-1dc9743e.vercel.app](https://mirador-9kfgysimq-matthew-scotts-projects-1dc9743e.vercel.app) |
+
+### Try the API
+
+```bash
+# Health check
+curl https://mirador-xva2.onrender.com/api/health
+
+# List all 30 personas
+curl https://mirador-xva2.onrender.com/api/personas
+
+# View architecture
+curl https://mirador-xva2.onrender.com/api/architecture
+
+# OCEAN personality profile
+curl https://mirador-xva2.onrender.com/api/ocean
+
+# Run a chain (demo mode)
+curl -X POST https://mirador-xva2.onrender.com/api/run \
+  -H "Content-Type: application/json" \
+  -d '{"chain": "security_audit", "input": "Review my API for vulnerabilities"}'
+```

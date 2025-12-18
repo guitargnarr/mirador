@@ -9,7 +9,7 @@ import os
 import json
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Any
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
@@ -325,7 +325,8 @@ def root():
             "/api/run/<persona>": "Run single persona (demo mode)"
         },
         "github": "https://github.com/guitargnarr/mirador",
-        "landing_page": "https://mirador-9kfgysimq-matthew-scotts-projects-1dc9743e.vercel.app"
+        "landing_page": "https://mirador-9kfgysimq-matthew-scotts-projects-1dc9743e.vercel.app",
+        "api_docs": "https://github.com/guitargnarr/mirador#try-the-api"
     })
 
 @app.route("/api/health")
@@ -334,7 +335,7 @@ def health():
     return jsonify({
         "status": "healthy",
         "version": VERSION,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "demo_mode": True,
         "personas_loaded": len(PERSONAS),
         "chains_available": len(CHAINS)
