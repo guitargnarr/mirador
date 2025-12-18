@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: mirador-api
+    runtime: python
+    buildCommand: pip install -r requirements-demo.txt
+    startCommand: gunicorn api_demo:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+    healthCheckPath: /api/health

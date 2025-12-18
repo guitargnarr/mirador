@@ -1,0 +1,4 @@
+# Minimal requirements for demo API on Render
+flask>=3.0.0
+flask-cors>=4.0.0
+gunicorn>=21.0.0
