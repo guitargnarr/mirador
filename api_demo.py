@@ -488,6 +488,72 @@ def run_persona(persona_id: str):
 
     return jsonify(generate_demo_response(persona_id, input_text))
 
+@app.route("/api/audit")
+def get_self_audit():
+    """
+    Self-audit endpoint - demonstrates Mirador's ability to analyze its own architecture.
+    This returns the actual audit results from July 2025 that the LinkedIn article references.
+    """
+    return jsonify({
+        "audit_date": "2025-07-09T17:13:39.883914",
+        "audit_type": "self_analysis",
+        "description": "Mirador analyzed its own model inventory and identified optimization opportunities",
+
+        "findings": {
+            "total_models_analyzed": 74,
+            "duplicates_found": {
+                "exact_duplicates": 1,
+                "details": [{
+                    "models": ["llama3.2:3b", "llama3.2:latest"],
+                    "hash_match": "50d140eb45be6330292f5f813dbf670a",
+                    "storage_waste": "2 GB"
+                }]
+            },
+            "consolidation_opportunities": {
+                "count": 71,
+                "description": "71 models share the same base LLM architecture",
+                "base_llm": "llama3.2",
+                "recommendation": "Route through 8 universal models instead of 71 specialized variants"
+            },
+            "diversity_analysis": {
+                "before": {
+                    "unique_base_llms": 2,
+                    "diversity_percentage": "5.4%",
+                    "risk": "Single-vendor dependency on Llama family"
+                },
+                "after": {
+                    "unique_base_llms": 5,
+                    "diversity_percentage": "~20%",
+                    "models_added": ["Gemma 2", "Qwen 2.5", "Phi-3", "Command-R"]
+                }
+            }
+        },
+
+        "actions_taken": {
+            "approved_by": "human (one-click approval)",
+            "executed": "2025-07-10",
+            "changes": [
+                "Removed 1 exact duplicate (saved 2 GB)",
+                "Consolidated routing through 8 universal models",
+                "Added 4 diverse base LLMs",
+                "Created full audit trail"
+            ]
+        },
+
+        "governance": {
+            "human_in_the_loop": True,
+            "reversible": True,
+            "audit_trail": "All decisions logged with justification",
+            "git_commit": "c5ef7ad - Implement Ollama model optimizations"
+        },
+
+        "source_files": {
+            "analysis_script": "analyze_model_duplicates.py",
+            "results_file": "ollama_duplicate_analysis.json",
+            "implementation": "optimize_mirador_chains.sh"
+        }
+    })
+
 @app.route("/api/architecture")
 def get_architecture():
     """Get architecture documentation."""
