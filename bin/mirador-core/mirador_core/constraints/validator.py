@@ -115,7 +115,7 @@ class ConstraintValidator:
                     
                     # Determine priority based on keywords
                     priority = "medium"
-                    if any(word in activity.lower() for word in ["family_member", "family", "emergency", "critical"]):
+                    if any(word in activity.lower() for word in ["family", "family", "emergency", "critical"]):
                         priority = "high"
                     elif any(word in activity.lower() for word in ["optional", "if time", "when possible"]):
                         priority = "low"
@@ -239,7 +239,7 @@ class ConstraintValidator:
         # Relationship balance check
         relationship_time = sum(
             a.hours for a in daily_allocations 
-            if any(keyword in a.activity.lower() for keyword in ["family_member", "family_member", "family", "relationship"])
+            if any(keyword in a.activity.lower() for keyword in ["partner1", "partner2", "family", "relationship"])
         )
         
         work_adjacent_time = sum(
@@ -295,7 +295,7 @@ class ConstraintValidator:
                 "peak_hours": "morning",
                 "high_energy_activities": self.energy.high_energy_activities
             },
-            "relationship_priorities": ["family_member", "family_member"],
+            "relationship_priorities": ["partner1", "partner2"],
             "current_focus": ["degree_completion", "ai_innovation", "relationship_building"]
         }
 

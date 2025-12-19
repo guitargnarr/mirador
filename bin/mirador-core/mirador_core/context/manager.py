@@ -141,7 +141,7 @@ class ContextManager:
                 constraints["energy_factors"].append(word)
         
         # Relationship factors
-        relationships = ["family_member", "family_member", "family", "work"]
+        relationships = ["partner1", "partner2", "family", "work"]
         for rel in relationships:
             if rel in response.lower():
                 constraints["relationship_factors"].append(rel)
