@@ -133,15 +133,12 @@ class MiradorActionableSystem:
         if context_override:
             opportunity_prompt = f"Context: {context_override}\n\nIdentify the highest-value opportunity available today that can be acted upon immediately."
         else:
-            opportunity_prompt = """Analyze Matthew's current situation for immediate opportunities:
-            
+            opportunity_prompt = """Analyze the user's current situation for immediate opportunities:
+
             Current Context:
             - Location: Louisville, Jefferson County, Kentucky
-            - Financial baseline: ~$REDACTED
-            - Housing costs: ~$REDACTED
-            - Monthly baseline: ~$REDACTED
             - Goals: Financial optimization, local resource utilization, professional development
-            
+
             Identify the single highest-value opportunity available today that can be converted into immediate action."""
         
         opportunity_analysis = self.query_model("opportunity_identification_specialist", opportunity_prompt)

@@ -192,8 +192,8 @@ class MiradorActionPrioritizer:
         
         net_financial_impact = potential_savings + potential_income - estimated_cost
         
-        # Score based on net impact relative to monthly income (~$REDACTED)
-        monthly_income = REDACTED
+        # Score based on net impact relative to configurable baseline
+        monthly_income = 5000  # Default baseline for calculations
         impact_ratio = net_financial_impact / monthly_income
         
         if impact_ratio >= 0.1:  # 10%+ of monthly income
