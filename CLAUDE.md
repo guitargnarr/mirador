@@ -59,9 +59,6 @@ pip install -r requirements.txt  # orjson==3.9.15 (3.10+ has compatibility issue
 
 # Simple interface
 ./mirador-ez chain "Your query" model1 model2 model3
-
-# Run specific [COMPANY]-focused chains
-./[company]_chain_runner.sh <chain_type> "Your prompt"
 ```
 
 ### Model Management
@@ -261,7 +258,7 @@ done
 - detailed: Full analysis
 - export: Save to file
 
-## [COMPANY]-Specific Commands
+## Enterprise Commands
 
 The system includes specialized commands for corporate innovation strategy. Key chains:
 - `strategic_synthesis`: High-level strategic planning
