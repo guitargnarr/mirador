@@ -6,12 +6,10 @@ Deploy to Render for public demonstration.
 """
 
 import os
-import json
-import time
 import logging
 from datetime import datetime, timezone
-from typing import Dict, List, Any
-from flask import Flask, request, jsonify, Response
+from typing import Dict, Any
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 # Configure logging
@@ -212,7 +210,10 @@ CHAINS = {
     },
     "life_optimization": {
         "description": "Multi-domain life planning",
-        "personas": ["financial_planning_expert_v6", "health_wellness_optimizer", "productivity_optimizer", "cross_model_synthesizer"],
+        "personas": [
+            "financial_planning_expert_v6", "health_wellness_optimizer",
+            "productivity_optimizer", "cross_model_synthesizer"
+        ],
         "accuracy": "High"
     },
     "guitar_mastery": {
@@ -222,7 +223,10 @@ CHAINS = {
     },
     "career_acceleration": {
         "description": "Career strategy and job search",
-        "personas": ["louisville_expert_v2", "opportunity_identification_specialist", "barrier-breaker", "cross_model_synthesizer"],
+        "personas": [
+            "louisville_expert_v2", "opportunity_identification_specialist",
+            "barrier-breaker", "cross_model_synthesizer"
+        ],
         "accuracy": "High"
     },
     "financial_planning": {
@@ -260,6 +264,7 @@ OCEAN_PROFILE = {
 # Demo Response Generator
 # ============================================================================
 
+
 def generate_demo_response(persona_id: str, input_text: str) -> Dict[str, Any]:
     """Generate a demo response showing what the persona would produce."""
     persona = PERSONAS.get(persona_id, {})
@@ -274,6 +279,7 @@ def generate_demo_response(persona_id: str, input_text: str) -> Dict[str, Any]:
         "sample_output": f"[{persona.get('description', persona_id)}] Analysis of: {input_text[:100]}...",
         "would_invoke": f"ollama run {persona.get('model', 'llama3.2')}"
     }
+
 
 def generate_chain_demo(chain_id: str, input_text: str) -> Dict[str, Any]:
     """Generate a demo chain execution showing the flow."""
@@ -305,6 +311,7 @@ def generate_chain_demo(chain_id: str, input_text: str) -> Dict[str, Any]:
 # API Endpoints
 # ============================================================================
 
+
 @app.route("/")
 def root():
     """Root endpoint with API info."""
@@ -331,6 +338,7 @@ def root():
         "api_docs": "https://github.com/guitargnarr/mirador#try-the-api"
     })
 
+
 @app.route("/api/health")
 def health():
     """Health check endpoint."""
@@ -342,6 +350,7 @@ def health():
         "personas_loaded": len(PERSONAS),
         "chains_available": len(CHAINS)
     })
+
 
 @app.route("/api/personas")
 def list_personas():
@@ -363,6 +372,7 @@ def list_personas():
         "categories": list(by_category.keys())
     })
 
+
 @app.route("/api/personas/<persona_id>")
 def get_persona(persona_id: str):
     """Get details for a specific persona."""
@@ -374,6 +384,7 @@ def get_persona(persona_id: str):
         "id": persona_id,
         **persona
     })
+
 
 @app.route("/api/chains")
 def list_chains():
@@ -391,6 +402,7 @@ def list_chains():
         "total": len(CHAINS),
         "chains": chain_list
     })
+
 
 @app.route("/api/chains/<chain_id>")
 def get_chain(chain_id: str):
@@ -414,6 +426,7 @@ def get_chain(chain_id: str):
         "personas": personas_detail
     })
 
+
 @app.route("/api/ocean")
 def get_ocean():
     """Get OCEAN personality profile."""
@@ -422,6 +435,7 @@ def get_ocean():
         "traits": OCEAN_PROFILE,
         "impact": "Personality data shapes which specialists activate and how they frame recommendations"
     })
+
 
 @app.route("/api/stats")
 def get_stats():
@@ -461,6 +475,7 @@ def get_stats():
         }
     })
 
+
 @app.route("/api/run", methods=["POST"])
 def run_chain():
     """Run a chain (demo mode)."""
@@ -476,6 +491,7 @@ def run_chain():
 
     return jsonify(generate_chain_demo(chain_id, input_text))
 
+
 @app.route("/api/run/<persona_id>", methods=["POST"])
 def run_persona(persona_id: str):
     """Run a single persona (demo mode)."""
@@ -489,6 +505,7 @@ def run_persona(persona_id: str):
         return jsonify({"error": "Missing 'input' field"}), 400
 
     return jsonify(generate_demo_response(persona_id, input_text))
+
 
 @app.route("/api/audit")
 def get_self_audit():
@@ -556,6 +573,7 @@ def get_self_audit():
         }
     })
 
+
 @app.route("/api/architecture")
 def get_architecture():
     """Get architecture documentation."""
@@ -603,6 +621,7 @@ def get_architecture():
 # ============================================================================
 # Main
 # ============================================================================
+
 
 if __name__ == "__main__":
     logger.info(f"Starting Mirador Demo API v{VERSION} on port {PORT}")
