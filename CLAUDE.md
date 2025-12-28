@@ -149,7 +149,7 @@ User Query → Smart Router → Chain Selection → Model Pipeline → Constrain
    - `mirador_universal_runner_v2.sh`: Universal chain runner
    - `mirador_universal_runner_v3_optimized.sh`: Optimized with diverse models
 
-2. **Model Layer** (80+ specialized models)
+2. **Model Layer** (30 specialized personas, 51 Ollama models)
    - Context providers: Personal/professional background
    - Domain experts: Financial, music, health, Louisville-specific
    - Strategy models: Planning and synthesis

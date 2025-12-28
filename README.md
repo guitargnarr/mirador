@@ -1,6 +1,6 @@
 # Mirador
 
-**89+ specialized personas. One conductor. Local execution. Personality-aware intelligence.**
+**30 specialized personas. One conductor. Local execution. Personality-aware intelligence.**
 
 An AI orchestration framework built because no existing tool could handle the complexity of actual life.
 
@@ -14,7 +14,7 @@ Mirador implements a **conductor-based orchestration pattern**. One meta-agent a
 
 | Metric | Count |
 |--------|-------|
-| Specialized Personas | 89+ |
+| Specialized Personas | 30 |
 | Ollama Models | 49 installed |
 | Lines of Python | 30,000+ |
 | Shell Scripts | 877 |
@@ -43,7 +43,7 @@ User Query
     │
     ▼
 ┌───────────────────────────────────────────────────┐
-│  Persona Chains (89+ specialists)                 │
+│  Persona Chains (30 specialists)                  │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ │
 │  │   Guitar    │ │  Financial  │ │  Security   │ │
 │  │  Experts    │ │  Planning   │ │   Audit     │ │

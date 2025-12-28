@@ -31,7 +31,7 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 VERSION = "2.0.0"
 PORT = int(os.environ.get("PORT", 5001))
 
-# Full persona catalog (89+ specialists)
+# Full persona catalog (30 specialists)
 PERSONAS = {
     # Development
     "master_coder": {
@@ -311,11 +311,11 @@ def root():
     return jsonify({
         "name": "Mirador AI Orchestrator API",
         "version": VERSION,
-        "description": "89+ specialized personas with conductor-based orchestration",
+        "description": "30 specialized personas with conductor-based orchestration",
         "demo_mode": True,
         "endpoints": {
             "/api/health": "Health check",
-            "/api/personas": "List all 89+ personas",
+            "/api/personas": "List all 30 personas",
             "/api/personas/<id>": "Get persona details",
             "/api/chains": "List available chains",
             "/api/chains/<id>": "Get chain details",
@@ -565,7 +565,7 @@ def get_architecture():
             "1. User Query → Conductor Agent",
             "2. Conductor analyzes task, selects optimal persona chain",
             "3. Mesfamily_member Bus enables specialist communication",
-            "4. Persona Chain executes (89+ specialists available)",
+            "4. Persona Chain executes (30 specialists available)",
             "5. Meta-Cognitive Layer critiques and synthesizes",
             "6. Ollama executes local LLM inference"
         ],
