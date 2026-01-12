@@ -1,6 +1,20 @@
 # Mirador
 
-**30 specialized personas. One conductor. Local execution. Personality-aware intelligence.**
+<p align="center">
+  <img src=".github/mirador-hero.png" alt="Mirador - Self-Governing AI" width="800">
+</p>
+
+<p align="center">
+  <strong>30 specialized personas. One conductor. Local execution. Personality-aware intelligence.</strong>
+</p>
+
+<p align="center">
+  <a href="https://mirador.projectlavos.com">Live Demo</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#quick-start">Quick Start</a>
+</p>
+
+---
 
 An AI orchestration framework built because no existing tool could handle the complexity of actual life.
 

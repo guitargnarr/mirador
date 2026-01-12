@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="mirador-core",
-    version="2.1.2",
+    version="2.1.3",
     author="Matthew David Scott",
     author_email="matthewdscott7@gmail.com",
     description="Privacy-first AI orchestration - 64 agents running 100% locally with zero cloud dependencies (HIPAA-ready)",
@@ -16,6 +16,13 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/guitargnarr/mirador",
+    project_urls={
+        "Homepage": "https://projectlavos.com",
+        "Documentation": "https://mirador.projectlavos.com",
+        "Source": "https://github.com/guitargnarr/mirador",
+        "Bug Tracker": "https://github.com/guitargnarr/mirador/issues",
+        "API": "https://mirador-xva2.onrender.com",
+    },
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
