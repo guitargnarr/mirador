@@ -276,6 +276,7 @@ checkpoint_*
 # Backup patterns
 backup*/
 backups/
+chain_backups*/
 *.backup
 *.old
 *.orig

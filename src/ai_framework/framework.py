@@ -13,6 +13,13 @@ import argparse
 from datetime import datetime
 import readline  # For better input handling
 
+# Optional conductor import for dynamic model selection
+try:
+    from conductor import ConductorAgent
+    conductor = ConductorAgent()
+except Exception:
+    conductor = None
+
 # ANSI Colors
 GREEN = '\033[0;32m'
 BLUE = '\033[0;34m'
@@ -177,12 +184,12 @@ def run_chain(prompt, models=None, output_dir=None, use_conductor=True, visualiz
         with open(os.path.join(os.path.dirname(OUTPUT_DIR), "config", "config.json"), "r") as f:
             config = json.load(f)
             visualize = config.get("ui", {}).get("visualization_enabled", visualize)
-    except:
+    except Exception:
         # Use default if config can't be loaded
         pass
-    
+
     # Use conductor to select models if requested and available
-    if models is None or (use_conductor and 'conductor' in globals() and conductor is not None):
+    if models is None or (use_conductor and conductor is not None):
         try:
             # Get recommended specialists from conductor
             result = conductor.ask_conductor(prompt)
