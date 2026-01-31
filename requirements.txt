@@ -16,7 +16,7 @@ orjson==3.9.15  # Note: 3.10+ has compatibility issues
 # Visualization (optional)
 matplotlib==3.7.2
 seaborn==0.12.2
-plotly==5.18.0
+plotly==6.5.2
 streamlit==1.32.0  # For web dashboard
 
 # Testing
