@@ -29,9 +29,9 @@ Mirador implements a **conductor-based orchestration pattern**. One meta-agent a
 | Metric | Count |
 |--------|-------|
 | Specialized Personas | 30 |
-| Ollama Models | 49 installed |
-| Lines of Python | 30,000+ |
-| Shell Scripts | 877 |
+| Ollama Models | 51 installed |
+| Lines of Python | ~35,000 |
+| Shell Scripts | 210 |
 | Execution | 100% local |
 
 ## Architecture
@@ -186,12 +186,12 @@ Intelligent query routing:
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `src/ai_framework/framework.py` | 28,421 | Main orchestration |
-| `src/ai_framework/conductor.py` | 16,709 | Dynamic task routing |
-| `src/ai_framework/core/mesfamily_member_bus.py` | 25,567 | Agent communication |
-| `src/ai_framework/core/specialist_handler.py` | 20,762 | Model invocation |
-| `src/ai_framework/core/intervention_manager.py` | 33,267 | Human-in-the-loop |
-| `api.py` | 558 | Flask REST API |
+| `src/ai_framework/framework.py` | 713 | Main orchestration |
+| `src/ai_framework/conductor.py` | 395 | Dynamic task routing |
+| `src/ai_framework/core/message_bus.py` | 711 | Agent communication |
+| `src/ai_framework/core/specialist_handler.py` | 584 | Model invocation |
+| `src/ai_framework/core/intervention_manager.py` | 866 | Human-in-the-loop |
+| `api.py` | 623 | Flask REST API |
 
 ## Validated Results
 
@@ -235,7 +235,7 @@ MIT
 | Resource | URL |
 |----------|-----|
 | **API (Render)** | [mirador-xva2.onrender.com](https://mirador-xva2.onrender.com) |
-| **Landing Page** | [mirador-9kfgysimq-matthew-scotts-projects-1dc9743e.vercel.app](https://mirador-9kfgysimq-matthew-scotts-projects-1dc9743e.vercel.app) |
+| **Landing Page** | [mirador.projectlavos.com](https://mirador.projectlavos.com) |
 
 ### Try the API
 
