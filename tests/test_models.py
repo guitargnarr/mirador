@@ -140,7 +140,7 @@ class ModelTester:
         # Check Ollama connectivity
         try:
             subprocess.run(['ollama', 'list'], capture_output=True, check=True)
-        except:
+        except Exception:
             print("❌ ERROR: Ollama is not running!")
             print("   Start Ollama with: ollama serve")
             return

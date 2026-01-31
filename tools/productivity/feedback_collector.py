@@ -17,9 +17,9 @@ def load_feedback() -> Dict:
         try:
             with open(FEEDBACK_FILE, 'r') as f:
                 return json.load(f)
-        except:
+        except Exception:
             pass
-    
+
     return {
         "feedback_items": [],
         "feature_requests": {},
@@ -222,7 +222,7 @@ def quick_feedback(tool_name: str, rating: int = None):
             "feedback": "Quick rating"
         })
         save_feedback(data)
-    except:
+    except Exception:
         pass  # Fail silently
 
 if __name__ == "__main__":

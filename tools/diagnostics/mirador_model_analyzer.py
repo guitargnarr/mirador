@@ -211,7 +211,7 @@ class MiradorModelAnalyzer:
                 return float(size_str.replace('MB', ''))
             else:
                 return 0.0
-        except:
+        except Exception:
             return 0.0
 
     def analyze_consolidation_opportunities(self, models: List[ModelInfo]) -> Dict:

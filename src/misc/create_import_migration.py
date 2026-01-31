@@ -134,10 +134,12 @@ class ImportMigrator:
         
         # Create requirements update
         if os.path.exists('requirements.txt'):
-            with open('requirements.txt', 'a') as f:
-                if 'mirador-core' not in open('requirements.txt').read():
+            with open('requirements.txt', 'r') as f:
+                contents = f.read()
+            if 'mirador-core' not in contents:
+                with open('requirements.txt', 'a') as f:
                     f.write('\n# Local mirador-core library\n-e ./mirador-core\n')
-                    print("\nAdded mirador-core to requirements.txt")
+                print("\nAdded mirador-core to requirements.txt")
 
 if __name__ == '__main__':
     migrator = ImportMigrator()

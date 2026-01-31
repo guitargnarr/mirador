@@ -91,8 +91,9 @@ class ErrorHandler:
                         current_delay *= backoff
                     else:
                         raise
-            
-            raise last_error
+
+            if last_error is not None:
+                raise last_error
         
         return wrapper
     

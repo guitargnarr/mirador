@@ -260,7 +260,7 @@ class QualityAssurance:
             
             # Allow dates from 1900 to 5 years in future
             return 1900 <= year <= current_year + 5
-        except:
+        except Exception:
             return False
             
     def _validate_percentage(self, percentage_str: str, context: Dict = None) -> bool:
@@ -268,7 +268,7 @@ class QualityAssurance:
         try:
             value = float(percentage_str.rstrip('%'))
             return 0 <= value <= 100
-        except:
+        except Exception:
             return False
             
     def _validate_currency(self, currency_str: str, context: Dict = None) -> bool:
@@ -288,7 +288,7 @@ class QualityAssurance:
                 
             # Reasonable bounds for business context
             return 0 < value < 1000000000000  # Less than 1 trillion
-        except:
+        except Exception:
             return False
             
     def _validate_time_estimate(self, time_str: str, context: Dict = None) -> bool:
@@ -312,9 +312,9 @@ class QualityAssurance:
                         return min_val <= value <= max_val
                         
             return False
-        except:
+        except Exception:
             return False
-            
+
     def _check_consistency(self, text: str) -> Dict:
         """Check for internal consistency"""
         warnings = []

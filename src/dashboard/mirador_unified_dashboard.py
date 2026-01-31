@@ -115,7 +115,7 @@ class MiradorUnifiedDashboard:
                 result = subprocess.run(["ollama", "list"], capture_output=True, text=True)
                 model_count = len([l for l in result.stdout.split('\n') if 'user' in l or 'enhanced' in l])
                 status_table.add_row("Mirador AI", "✅ Active", f"{model_count} models loaded")
-            except:
+            except Exception:
                 status_table.add_row("Mirador AI", "❌ Offline", "Ollama not running")
             
             # Check JCPS Tracker
@@ -137,7 +137,7 @@ class MiradorUnifiedDashboard:
                     stats = self.get_ufamily_member_stats()
                     status_table.add_row("Analytics", "✅ Active", 
                                        f"{stats['total_sessions']} sessions tracked")
-                except:
+                except Exception:
                     status_table.add_row("Analytics", "⚠️  Limited", "Database needs init")
             else:
                 status_table.add_row("Analytics", "❌ Unavailable", "context_manager not found")
@@ -491,9 +491,9 @@ class MiradorUnifiedDashboard:
                 try:
                     pattern_list = json.loads(p[0])
                     all_patterns.extend(pattern_list)
-                except:
+                except Exception:
                     pass
-        
+
         # Get unique patterns
         unique_patterns = list(set(all_patterns))[:5]
         
