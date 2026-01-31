@@ -4,7 +4,7 @@ pandas==2.0.3
 pyyaml==6.0.1
 rich==13.7.0
 click==8.1.7
-python-dateutil==2.8.2
+python-dateutil==2.9.0.post0
 
 # API Server
 flask>=3.0.0              # Web framework for REST API
