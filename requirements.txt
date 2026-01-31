@@ -11,7 +11,7 @@ flask>=3.0.0              # Web framework for REST API
 flask-cors>=4.0.0         # CORS support for API
 
 # Data Processing
-orjson==3.9.15  # Note: 3.10+ has compatibility issues
+orjson==3.11.6  # Note: 3.10+ has compatibility issues
 
 # Visualization (optional)
 matplotlib==3.7.2
