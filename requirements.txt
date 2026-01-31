@@ -37,7 +37,7 @@ structlog==23.2.0
 sqlalchemy==2.0.23
 
 # CLI Tools
-typer==0.9.0
+typer==0.21.1
 
 # Environment Management
 python-dotenv==1.0.0
