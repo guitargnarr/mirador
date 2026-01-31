@@ -141,9 +141,9 @@ def analyze_models_batch(models, start_idx=0, batch_size=10):
                     if len(parts) >= 3:
                         size = parts[2] + " " + parts[3]
                     break
-        except:
+        except Exception:
             pass
-        
+
         results.append({
             'model': model,
             'base_llm': base_llm,
@@ -218,7 +218,7 @@ def main():
         try:
             start_idx = int(sys.argv[1])
             batch_size = int(sys.argv[2]) if len(sys.argv) > 2 else 10
-        except:
+        except Exception:
             start_idx = 0
             batch_size = len(models)
     else:

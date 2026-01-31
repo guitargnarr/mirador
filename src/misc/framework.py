@@ -152,7 +152,7 @@ class AIFramework:
         # Get creation time from session ID
         try:
             creation_time = "-".join(session_id.split("-")[:2])
-        except:
+        except Exception:
             creation_time = "Unknown"
                 
         return {

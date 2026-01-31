@@ -64,7 +64,7 @@ def analyze_star_ratings(data: List[Dict]) -> Dict:
                 rating = float(row.get(category, '0').replace('*', '').strip())
                 if 0 < rating <= 5:  # Valid star rating
                     ratings.append(rating)
-            except:
+            except Exception:
                 continue
         
         if ratings:

@@ -237,9 +237,6 @@ def run_chain(prompt, models=None, output_dir=None, use_conductor=True, visualiz
             if models is None:
                 # Default chain if conductor fails
                 models = ["master_coder", "code_reviewer_fix", "creative_entrepreneur"]
-    elif models is None:
-        # Default chain if no models specified and conductor not available
-        models = ["master_coder", "code_reviewer_fix", "creative_entrepreneur"]
     
     # Create timestamped output directory
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

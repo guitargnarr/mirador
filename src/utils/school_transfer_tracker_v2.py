@@ -377,7 +377,7 @@ class SchoolTransferTracker:
                     self.data["action_items"][idx]["completed"] = True
                     self.save_data()
                     print("✅ Item marked as completed!")
-            except:
+            except Exception:
                 print("Invalid item number")
         
         elif choice == "2":

@@ -112,9 +112,9 @@ class AdvocatesLauncher:
                     self.advocates.upvote_pain_point(selected['id'])
                     print(f"✅ Upvoted pain point #{selected['id']}")
                     return
-                except:
+                except Exception:
                     pass
-                    
+
         # Category selection
         print("\nSelect category:")
         categories = list(self.advocates.pain_categories.keys())
@@ -124,7 +124,7 @@ class AdvocatesLauncher:
         cat_choice = input("Category (1-5): ").strip()
         try:
             category = categories[int(cat_choice) - 1]
-        except:
+        except Exception:
             category = None
             
         # Impact level

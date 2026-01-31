@@ -339,7 +339,7 @@ class MiradorActionPrioritizer:
                     deadline_score = 4
                 else:  # More than a month
                     deadline_score = 2
-            except:
+            except Exception:
                 deadline_score = 0
         
         return min(max(keyword_score, deadline_score), 10)
