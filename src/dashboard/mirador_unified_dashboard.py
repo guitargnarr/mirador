@@ -491,8 +491,8 @@ class MiradorUnifiedDashboard:
                 try:
                     pattern_list = json.loads(p[0])
                     all_patterns.extend(pattern_list)
-                except Exception:
-                    pass
+                except (Exception, json.JSONDecodeError):
+                    continue
 
         # Get unique patterns
         unique_patterns = list(set(all_patterns))[:5]

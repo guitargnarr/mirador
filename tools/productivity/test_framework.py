@@ -193,8 +193,8 @@ class MiradorTestFramework:
                                     for line in lines:
                                         if pattern in line and '=' in line and not line.strip().startswith('#'):
                                             found_issues.append((filepath, pattern))
-                    except Exception:
-                        pass
+                    except (OSError, UnicodeDecodeError):
+                        continue
 
         if not found_issues:
             results['passed'] += 1
@@ -232,8 +232,8 @@ class MiradorTestFramework:
                             content = f.read()
                             if '"""' in content or "'''" in content:
                                 documented_files += 1
-                    except Exception:
-                        pass
+                    except (OSError, UnicodeDecodeError):
+                        continue
 
         doc_coverage = (documented_files / py_files * 100) if py_files > 0 else 0
         if doc_coverage > 70:

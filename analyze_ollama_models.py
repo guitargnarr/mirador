@@ -142,7 +142,7 @@ def analyze_models_batch(models, start_idx=0, batch_size=10):
                         size = parts[2] + " " + parts[3]
                     break
         except Exception:
-            pass
+            size = "Unknown"
 
         results.append({
             'model': model,

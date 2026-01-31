@@ -176,7 +176,7 @@ def check_mirador_integration():
         
         # Test basic functionality
         try:
-            test_result = query_model("test", "Hello", max_length=10)
+            query_model("test", "Hello")
             print("✅ API connection successful")
         except Exception:
             print("⚠️  API connection failed - check Ollama")
