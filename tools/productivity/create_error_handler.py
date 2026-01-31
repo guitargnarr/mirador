@@ -94,7 +94,8 @@ class ErrorHandler:
 
             if last_error is not None:
                 raise last_error
-        
+            return None
+
         return wrapper
     
     def safe_execute(self, func: Callable, default: Any = None, 
