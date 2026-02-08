@@ -9,6 +9,7 @@ python-dateutil==2.9.0.post0
 # API Server
 flask>=3.0.0              # Web framework for REST API
 flask-cors>=4.0.0         # CORS support for API
+flask-limiter>=3.5.0      # Rate limiting for API endpoints
 
 # Data Processing
 orjson==3.11.6  # Note: 3.10+ has compatibility issues

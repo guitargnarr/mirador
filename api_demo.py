@@ -5,12 +5,15 @@ Showcases the orchestration architecture without requiring local Ollama.
 Deploy to Render for public demonstration.
 """
 
-import os
 import logging
+import os
 from datetime import datetime, timezone
-from typing import Dict, Any
-from flask import Flask, request, jsonify
+from typing import Any, Dict
+
+from flask import Flask, jsonify, request
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Configure logging
 logging.basicConfig(
@@ -20,7 +23,20 @@ logging.basicConfig(
 logger = logging.getLogger("mirador-api")
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+ALLOWED_ORIGINS = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:3000,http://localhost:5173"
+).split(",")
+
+CORS(app, resources={r"/api/*": {"origins": ALLOWED_ORIGINS}})
+
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["60/minute"],
+    storage_uri="memory://",
+)
 
 # ============================================================================
 # Configuration
@@ -477,6 +493,7 @@ def get_stats():
 
 
 @app.route("/api/run", methods=["POST"])
+@limiter.limit("10/minute")
 def run_chain():
     """Run a chain (demo mode)."""
     data = request.get_json() or {}
@@ -493,6 +510,7 @@ def run_chain():
 
 
 @app.route("/api/run/<persona_id>", methods=["POST"])
+@limiter.limit("10/minute")
 def run_persona(persona_id: str):
     """Run a single persona (demo mode)."""
     if persona_id not in PERSONAS:
