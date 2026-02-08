@@ -12,7 +12,7 @@ flask-cors>=4.0.0         # CORS support for API
 flask-limiter>=3.5.0      # Rate limiting for API endpoints
 
 # Data Processing
-orjson==3.11.6  # Note: 3.10+ has compatibility issues
+orjson==3.11.7  # Note: 3.10+ has compatibility issues
 
 # Visualization (optional)
 matplotlib==3.7.2
