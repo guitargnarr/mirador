@@ -1,0 +1,20 @@
+[project]
+name = "mirador"
+version = "1.0.0"
+description = "AI orchestrator with 65+ Ollama model support"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 127
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "src/test"]
+asyncio_mode = "auto"
