@@ -4,16 +4,19 @@ Mirador Production API
 Flask REST API with SSE streaming for real-time chain execution.
 """
 
+import json
+import logging
 import os
 import sys
-import json
 import time
-import logging
-import requests
 from datetime import datetime
-from typing import Dict, List, Any, Generator
-from flask import Flask, request, jsonify, Response, stream_with_context
+from typing import Any, Dict, Generator, List
+
+import requests
+from flask import Flask, Response, jsonify, request, stream_with_context
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
@@ -26,7 +29,20 @@ logging.basicConfig(
 logger = logging.getLogger("mirador-api")
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+ALLOWED_ORIGINS = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:3000,http://localhost:5173"
+).split(",")
+
+CORS(app, resources={r"/api/*": {"origins": ALLOWED_ORIGINS}})
+
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["60/minute"],
+    storage_uri="memory://",
+)
 
 # ============================================================================
 # Configuration
@@ -412,6 +428,7 @@ def list_chains():
 
 
 @app.route('/api/run', methods=['POST', 'OPTIONS'])
+@limiter.limit("10/minute")
 def run_chain_endpoint():
     """
     Execute a chain with streaming SSE response.
@@ -458,12 +475,13 @@ def run_chain_endpoint():
         headers={
             'Cache-Control': 'no-cache',
             'Connection': 'keep-alive',
-            'Access-Control-Allow-Origin': '*'
+            'X-Content-Type-Options': 'nosniff'
         }
     )
 
 
 @app.route('/api/run/<persona_id>', methods=['POST', 'OPTIONS'])
+@limiter.limit("10/minute")
 def run_single_persona(persona_id: str):
     """
     Execute a single persona.
@@ -497,12 +515,13 @@ def run_single_persona(persona_id: str):
         headers={
             'Cache-Control': 'no-cache',
             'Connection': 'keep-alive',
-            'Access-Control-Allow-Origin': '*'
+            'X-Content-Type-Options': 'nosniff'
         }
     )
 
 
 @app.route('/api/chain/<chain_id>', methods=['POST', 'OPTIONS'])
+@limiter.limit("10/minute")
 def run_preset_chain(chain_id: str):
     """
     Execute a preset chain by ID.
@@ -536,12 +555,13 @@ def run_preset_chain(chain_id: str):
         headers={
             'Cache-Control': 'no-cache',
             'Connection': 'keep-alive',
-            'Access-Control-Allow-Origin': '*'
+            'X-Content-Type-Options': 'nosniff'
         }
     )
 
 
 @app.route('/api/run/sync', methods=['POST'])
+@limiter.limit("10/minute")
 def run_chain_sync():
     """
     Execute a chain and return complete result (non-streaming).

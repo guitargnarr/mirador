@@ -7,4 +7,6 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.11"
+      - key: CORS_ORIGINS
+        value: "https://mirador.projectlavos.com,https://mirador-9kfgysimq-matthew-scotts-projects-1dc9743e.vercel.app"
     healthCheckPath: /api/health
