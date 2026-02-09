@@ -1,6 +1,12 @@
 #!/bin/bash
 # Mirador Universal Runner v3 - Optimized with diverse models
 
+# Configuration
+MIRADOR_HOME="${HOME}/Projects/mirador"
+
+# Source metrics logger
+source "${MIRADOR_HOME}/bin/mirador_metrics.sh"
+
 # Colors
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
@@ -9,7 +15,7 @@ RESET='\033[0m'
 
 # Check arguments
 if [ $# -lt 2 ]; then
-    echo "Ufamily_member: $0 <chain_type> <prompt> [format]"
+    echo "Usage: $0 <chain_type> <prompt> [format]"
     echo ""
     echo "Chain types:"
     echo "  life_optimization    - Personal productivity & wellness"
@@ -33,91 +39,85 @@ FORMAT=${3:-detailed}
 # Set models based on chain type
 case "$CHAIN_TYPE" in
     "life_optimization")
-        # Use latest context provider only (removed duplicates)
         MODELS=(
-            "matthew_context_provider_v6_complete:latest"
+            "universal_context_provider:latest"
             "health_wellness_optimizer:latest"
             "productivity_optimizer:latest"
-            "action_crystallizer:latest"
+            "decision_simplifier_v2:latest"
         )
         ;;
-    
+
     "business_acceleration")
-        # Removed duplicate accelerators
         MODELS=(
-            "matthew_context_provider_v6_complete:latest"
-            "ai_career_strategist:latest"
-            "matthews_strategic_accelerator_v2:latest"
-            "solution_architect:latest"
+            "universal_context_provider:latest"
+            "matthew-career-coach:latest"
+            "cot-career-strategist:latest"
+            "decision_simplifier_v2:latest"
         )
         ;;
-    
+
     "creative_breakthrough")
         MODELS=(
-            "matthew_context_provider_v6_complete:latest"
-            "creative_catalyst:latest"
-            "digital_storyteller:latest"
-            "engagement_optimizer:latest"
+            "universal_context_provider:latest"
+            "content_strategist_pro:latest"
+            "cross_model_synthesizer:latest"
+            "decision_enhancer:latest"
         )
         ;;
-    
+
     "relationship_harmony")
         MODELS=(
-            "matthew_context_provider_v6_complete:latest"
-            "relationship_communication_specialist:latest"
-            "life_transition_coordinator:latest"
-            "action_crystallizer:latest"
+            "universal_context_provider:latest"
+            "decision_enhancer:latest"
+            "cross_model_synthesizer:latest"
+            "decision_simplifier_v2:latest"
         )
         ;;
-    
+
     "technical_mastery")
-        # Use specialized code models
         MODELS=(
-            "matthew_context_provider_v6_complete:latest"  # Lighter for speed
-            "master_coder:latest"
-            "code_reviewer:latest"  # DeepSeek-based
-            "solution_architect:latest"
+            "universal_context_provider:latest"
+            "cot-software-architect:latest"
+            "qwen2.5-coder:7b"
+            "decision_simplifier_v2:latest"
         )
         ;;
-    
+
     "strategic_synthesis")
         MODELS=(
-            "matthew_context_provider_v6_complete:latest"
-            "universal_strategy_architect:latest"
+            "universal_context_provider:latest"
             "cross_model_synthesizer:latest"
-            "optimized_decision_simplifier_v3:latest"
+            "gemma2:9b"
+            "decision_simplifier_v2:latest"
         )
         ;;
-    
+
     "deep_analysis")
-        # NEW: Gemma-powered deep reasoning
         MODELS=(
-            "matthew_context_provider_v6_complete:latest"
-            "analytical_expert_gemma:latest"
-            "universal_strategy_architect:latest"
-            "practical_implementer:latest"
+            "universal_context_provider:latest"
+            "gemma2:9b"
+            "cross_model_synthesizer:latest"
+            "decision_simplifier_v2:latest"
         )
         ;;
-    
+
     "global_insight")
-        # NEW: Qwen-powered multilingual
         MODELS=(
-            "matthew_context_provider_v6_complete:latest"
-            "multilingual_assistant_qwen:latest"
-            "engagement_optimizer:latest"
-            "action_crystallizer:latest"
+            "universal_context_provider:latest"
+            "qwen2.5:7b"
+            "cross_model_synthesizer:latest"
+            "decision_simplifier_v2:latest"
         )
         ;;
-    
+
     "rapid_decision")
-        # NEW: Phi-powered fast decisions
         MODELS=(
-            "speed_optimizer_phi:latest"
-            "matthew_context_provider_v6_complete:latest"
-            "action_crystallizer:latest"
+            "quick-advisor-phi:latest"
+            "universal_context_provider:latest"
+            "decision_simplifier_v2:latest"
         )
         ;;
-    
+
     *)
         echo "Invalid chain type: $CHAIN_TYPE"
         exit 1
@@ -129,10 +129,14 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 OUTPUT_DIR="outputs/universal_${CHAIN_TYPE}_${TIMESTAMP}"
 mkdir -p "$OUTPUT_DIR"
 
-echo -e "${BLUE}🚀 Running Optimized ${CHAIN_TYPE} Chain${RESET}"
+echo -e "${BLUE}Running Optimized ${CHAIN_TYPE} Chain${RESET}"
 echo -e "${GREEN}Models: ${MODELS[*]}${RESET}"
 echo -e "${YELLOW}Format: $FORMAT${RESET}"
 echo ""
+
+# Start metrics
+SESSION_ID=$(metrics_session_id)
+metrics_start "$SESSION_ID" "$PROMPT" "v3:${CHAIN_TYPE}"
 
 # Initialize context
 CONTEXT=""
@@ -142,7 +146,7 @@ FULL_OUTPUT=""
 for i in "${!MODELS[@]}"; do
     MODEL="${MODELS[$i]}"
     echo -e "${BLUE}Running $MODEL ($(($i + 1))/${#MODELS[@]})...${RESET}"
-    
+
     # Prepare input
     if [ $i -eq 0 ]; then
         INPUT="$PROMPT"
@@ -154,19 +158,29 @@ $CONTEXT
 
 Please add your perspective and insights."
     fi
-    
+
     # Run model and capture output
+    MODEL_START=$(date +%s)
     OUTPUT=$(echo "$INPUT" | ollama run "$MODEL" 2>/dev/null)
-    
+    MODEL_END=$(date +%s)
+    MODEL_ELAPSED=$(( MODEL_END - MODEL_START ))
+
+    # Log model metrics
+    if [ -n "$OUTPUT" ]; then
+        metrics_log_model "$MODEL" "${#OUTPUT}" "$MODEL_ELAPSED" "1"
+    else
+        metrics_log_model "$MODEL" "0" "$MODEL_ELAPSED" "0"
+    fi
+
     # Save individual output
     echo "$OUTPUT" > "$OUTPUT_DIR/response_$(($i + 1))_${MODEL//:/_}.md"
-    
+
     # Update context
     CONTEXT="$CONTEXT
 
 === $MODEL ===
 $OUTPUT"
-    
+
     FULL_OUTPUT="$FULL_OUTPUT
 
 ## Model $(($i + 1)): $MODEL
@@ -177,33 +191,30 @@ done
 # Generate final output based on format
 case "$FORMAT" in
     "quick")
-        # Extract key points only
-        echo "$FULL_OUTPUT" | grep -E "^[-•*]|^[0-9]\." | head -20 > "$OUTPUT_DIR/summary.md"
+        echo "$FULL_OUTPUT" | grep -E "^[-*]|^[0-9]\." | head -20 > "$OUTPUT_DIR/summary.md"
         cat "$OUTPUT_DIR/summary.md"
         ;;
-    
+
     "summary")
-        # First 100 lines of combined output
         echo "$FULL_OUTPUT" | head -100 > "$OUTPUT_DIR/summary.md"
         cat "$OUTPUT_DIR/summary.md"
         ;;
-    
+
     "detailed")
-        # Full output
         echo "$FULL_OUTPUT" > "$OUTPUT_DIR/full_analysis.md"
         cat "$OUTPUT_DIR/full_analysis.md"
         ;;
-    
+
     "export")
-        # Save and notify
         echo "$FULL_OUTPUT" > "$OUTPUT_DIR/full_analysis.md"
-        echo -e "${GREEN}✅ Analysis exported to: $OUTPUT_DIR/full_analysis.md${RESET}"
+        echo -e "${GREEN}Analysis exported to: $OUTPUT_DIR/full_analysis.md${RESET}"
         ;;
 esac
 
-# Save metadata
+# Save metadata (include session_id now)
 cat > "$OUTPUT_DIR/metadata.json" << EOJSON
 {
+    "session_id": "$SESSION_ID",
     "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
     "chain_type": "$CHAIN_TYPE",
     "format": "$FORMAT",
@@ -212,4 +223,11 @@ cat > "$OUTPUT_DIR/metadata.json" << EOJSON
 }
 EOJSON
 
-echo -e "\n${GREEN}✅ Chain complete! Results in: $OUTPUT_DIR${RESET}"
+# Finish metrics
+if [ "$_METRICS_ERROR_COUNT" -eq 0 ]; then
+    metrics_finish 1
+else
+    metrics_finish 0
+fi
+
+echo -e "\n${GREEN}Chain complete! Results in: $OUTPUT_DIR [Session: ${SESSION_ID}]${RESET}"
