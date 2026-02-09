@@ -1,0 +1,209 @@
+#!/bin/bash
+# Mirador Terminal Metrics Dashboard
+# Renders key metrics from ~/.mirador/metrics.db
+
+DB="${HOME}/.mirador/metrics.db"
+RECENT_LIMIT=10
+SECTION=""
+
+usage() {
+    echo "Usage: mirador-dashboard [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --recent N    Show last N executions (default: 10)"
+    echo "  --models      Model usage breakdown only"
+    echo "  --chains      Chain type breakdown only"
+    echo "  -h, --help    Show this help"
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --recent)
+            SECTION="recent"
+            RECENT_LIMIT="${2:-10}"
+            shift 2
+            ;;
+        --models)
+            SECTION="models"
+            shift
+            ;;
+        --chains)
+            SECTION="chains"
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+if [ ! -f "$DB" ]; then
+    echo "Error: metrics database not found at $DB"
+    exit 1
+fi
+
+row_count=$(sqlite3 "$DB" "SELECT COUNT(*) FROM executions;")
+if [ "$row_count" -eq 0 ]; then
+    echo "No executions recorded yet."
+    exit 0
+fi
+
+divider() {
+    printf '%*s\n' 70 '' | tr ' ' '-'
+}
+
+header() {
+    echo ""
+    divider
+    echo "  $1"
+    divider
+}
+
+# --- OVERVIEW ---
+show_overview() {
+    header "OVERVIEW"
+    sqlite3 -separator '|' "$DB" "
+        SELECT
+            COUNT(*) AS total,
+            ROUND(100.0 * SUM(success) / COUNT(*), 1) AS success_pct,
+            ROUND(SUM(duration_seconds), 1) AS total_sec,
+            MIN(date(start_time)) AS first_run,
+            MAX(date(start_time)) AS last_run
+        FROM executions;
+    " | while IFS='|' read -r total pct secs first last; do
+        printf "  %-24s %s\n" "Total executions:" "$total"
+        printf "  %-24s %s%%\n" "Success rate:" "$pct"
+        printf "  %-24s %ss\n" "Total time:" "$secs"
+        printf "  %-24s %s to %s\n" "Date range:" "$first" "$last"
+    done
+}
+
+# --- BY CHAIN TYPE ---
+show_chains() {
+    header "BY CHAIN TYPE"
+    printf "  %-20s %6s %10s %10s\n" "TYPE" "COUNT" "AVG(sec)" "SUCCESS%"
+    printf "  %-20s %6s %10s %10s\n" "----" "-----" "--------" "--------"
+    sqlite3 -separator '|' "$DB" "
+        SELECT
+            COALESCE(task_type, 'unknown'),
+            COUNT(*),
+            ROUND(AVG(duration_seconds), 1),
+            ROUND(100.0 * SUM(success) / COUNT(*), 1)
+        FROM executions
+        GROUP BY task_type
+        ORDER BY COUNT(*) DESC;
+    " | while IFS='|' read -r ttype cnt avg pct; do
+        printf "  %-20s %6s %10s %9s%%\n" "$ttype" "$cnt" "$avg" "$pct"
+    done
+}
+
+# --- BY MODEL ---
+show_models() {
+    header "BY MODEL"
+    printf "  %-40s %6s %10s\n" "MODEL" "COUNT" "AVG(sec)"
+    printf "  %-40s %6s %10s\n" "-----" "-----" "--------"
+    # Normalize models_used: strip JSON brackets/quotes, then split on comma
+    sqlite3 -separator '|' "$DB" "
+        WITH split_models AS (
+            SELECT
+                TRIM(j.value, '\" ') AS model,
+                duration_seconds
+            FROM executions,
+                 json_each(
+                     CASE
+                         WHEN models_used LIKE '[%' THEN models_used
+                         ELSE '[\"' || REPLACE(models_used, ',', '\",\"') || '\"]'
+                     END
+                 ) AS j
+        )
+        SELECT
+            model,
+            COUNT(*),
+            ROUND(AVG(duration_seconds), 1)
+        FROM split_models
+        WHERE model != ''
+        GROUP BY model
+        ORDER BY COUNT(*) DESC;
+    " | while IFS='|' read -r model cnt avg; do
+        printf "  %-40s %6s %10s\n" "$model" "$cnt" "$avg"
+    done
+}
+
+# --- RECENT ACTIVITY ---
+show_recent() {
+    header "RECENT ACTIVITY (last $RECENT_LIMIT)"
+    printf "  %-12s %-22s %8s %8s  %s\n" "DATE" "TYPE" "SEC" "STATUS" "PROMPT"
+    printf "  %-12s %-22s %8s %8s  %s\n" "----" "----" "---" "------" "-----"
+    sqlite3 -separator '|' "$DB" "
+        SELECT
+            date(start_time),
+            COALESCE(task_type, 'unknown'),
+            ROUND(duration_seconds, 1),
+            CASE WHEN success THEN 'OK' ELSE 'FAIL' END,
+            SUBSTR(prompt, 1, 40)
+        FROM executions
+        ORDER BY start_time DESC
+        LIMIT $RECENT_LIMIT;
+    " | while IFS='|' read -r dt ttype dur status prompt; do
+        printf "  %-12s %-22s %8s %8s  %s\n" "$dt" "$ttype" "$dur" "$status" "$prompt"
+    done
+}
+
+# --- PERFORMANCE ---
+show_performance() {
+    header "PERFORMANCE"
+    echo ""
+    echo "  Fastest:"
+    sqlite3 -separator '|' "$DB" "
+        SELECT COALESCE(task_type,'unknown'), ROUND(duration_seconds,1), SUBSTR(prompt,1,50)
+        FROM executions ORDER BY duration_seconds ASC LIMIT 3;
+    " | while IFS='|' read -r ttype dur prompt; do
+        printf "    %6ss  %-18s  %s\n" "$dur" "$ttype" "$prompt"
+    done
+
+    echo ""
+    echo "  Slowest:"
+    sqlite3 -separator '|' "$DB" "
+        SELECT COALESCE(task_type,'unknown'), ROUND(duration_seconds,1), SUBSTR(prompt,1,50)
+        FROM executions ORDER BY duration_seconds DESC LIMIT 3;
+    " | while IFS='|' read -r ttype dur prompt; do
+        printf "    %6ss  %-18s  %s\n" "$dur" "$ttype" "$prompt"
+    done
+
+    echo ""
+    echo "  Avg tokens output by chain type:"
+    printf "    %-20s %12s\n" "TYPE" "AVG_TOKENS"
+    printf "    %-20s %12s\n" "----" "----------"
+    sqlite3 -separator '|' "$DB" "
+        SELECT COALESCE(task_type,'unknown'), ROUND(AVG(tokens_output),0)
+        FROM executions GROUP BY task_type ORDER BY AVG(tokens_output) DESC;
+    " | while IFS='|' read -r ttype avg; do
+        printf "    %-20s %12s\n" "$ttype" "$avg"
+    done
+}
+
+# --- RENDER ---
+echo ""
+echo "  MIRADOR METRICS DASHBOARD"
+echo "  $(date '+%Y-%m-%d %H:%M')"
+
+case "$SECTION" in
+    recent)  show_recent ;;
+    models)  show_models ;;
+    chains)  show_chains ;;
+    *)
+        show_overview
+        show_chains
+        show_models
+        show_recent
+        show_performance
+        ;;
+esac
+
+echo ""
