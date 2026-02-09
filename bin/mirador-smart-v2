@@ -27,6 +27,12 @@ analyze_query() {
         return
     fi
 
+    # Music patterns (before health - "practice" overlaps)
+    if [[ "$query_lower" =~ (music|guitar|song|band|chord|riff|jam|strum|fretboard|tab|open.mic|gig|setlist) ]]; then
+        echo "music"
+        return
+    fi
+
     # Financial patterns
     if [[ "$query_lower" =~ (money|budget|finance|salary|investment|savings|afford|cost|spend) ]]; then
         echo "financial"
@@ -34,7 +40,7 @@ analyze_query() {
     fi
 
     # Health & wellness patterns
-    if [[ "$query_lower" =~ (health|fitness|wellness|stress|sleep|energy|tired|exercise|nutrition) ]]; then
+    if [[ "$query_lower" =~ (health|fitness|wellness|stress|sleep|energy|tired|exercise|nutrition|workout) ]]; then
         echo "health"
         return
     fi
@@ -45,14 +51,14 @@ analyze_query() {
         return
     fi
 
-    # Music patterns
-    if [[ "$query_lower" =~ (music|guitar|practice|performance|song|play|band|chord) ]]; then
-        echo "music"
+    # Family/relationship patterns (before career - "kids" shouldn't hit career)
+    if [[ "$query_lower" =~ (family|kids|teens|relationship|parenting|daughter|son|children) ]]; then
+        echo "family"
         return
     fi
 
     # Career/corporate patterns
-    if [[ "$query_lower" =~ (career|job|promotion|[company]|corporate|work|meeting|boss|ai.*leader) ]]; then
+    if [[ "$query_lower" =~ (career|job|promotion|corporate|work|meeting|boss|ai.*leader|resume|interview) ]]; then
         echo "career"
         return
     fi
@@ -60,12 +66,6 @@ analyze_query() {
     # Creative patterns
     if [[ "$query_lower" =~ (creative|innovate|idea|breakthrough|design|imagine|invent) ]]; then
         echo "creative"
-        return
-    fi
-
-    # Family/relationship patterns
-    if [[ "$query_lower" =~ (family|kids|teens|relationship|parenting|daughter|son|children) ]]; then
-        echo "family"
         return
     fi
 

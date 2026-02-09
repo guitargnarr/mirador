@@ -295,7 +295,7 @@ chain_backups*/
 *financial*.json
 
 # Company-specific files
-*[company]*
+*\[company\]*
 *company_*
 *corporate_*
 
