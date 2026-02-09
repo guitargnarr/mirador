@@ -127,39 +127,45 @@ show_overview() {
 # --- BY CHAIN TYPE ---
 show_chains() {
     header "BY CHAIN TYPE"
-    printf "  %-20s %6s %10s %10s\n" "TYPE" "COUNT" "AVG(sec)" "SUCCESS%"
-    printf "  %-20s %6s %10s %10s\n" "----" "-----" "--------" "--------"
+    printf "  %-20s %6s %10s %8s %10s\n" "TYPE" "COUNT" "AVG(sec)" "TOK/s" "SUCCESS%"
+    printf "  %-20s %6s %10s %8s %10s\n" "----" "-----" "--------" "-----" "--------"
     sqlite3 -separator '|' "$DB" "
         SELECT
             COALESCE(task_type, 'unknown'),
             COUNT(*),
             ROUND(AVG(duration_seconds), 1),
+            CASE WHEN AVG(duration_seconds) > 0
+                THEN ROUND(AVG(tokens_output * 1.0 / duration_seconds), 1)
+                ELSE 0 END,
             ROUND(100.0 * SUM(success) / COUNT(*), 1)
         FROM executions
         GROUP BY task_type
         ORDER BY COUNT(*) DESC;
-    " | while IFS='|' read -r ttype cnt avg pct; do
-        printf "  %-20s %6s %10s %9s%%\n" "$ttype" "$cnt" "$avg" "$pct"
+    " | while IFS='|' read -r ttype cnt avg tps pct; do
+        printf "  %-20s %6s %10s %8s %9s%%\n" "$ttype" "$cnt" "$avg" "$tps" "$pct"
     done
 }
 
 # --- BY MODEL ---
 show_models() {
     header "BY MODEL"
-    printf "  %-40s %6s %10s\n" "MODEL" "COUNT" "AVG(sec)"
-    printf "  %-40s %6s %10s\n" "-----" "-----" "--------"
+    printf "  %-40s %6s %10s %8s\n" "MODEL" "COUNT" "AVG(sec)" "TOK/s"
+    printf "  %-40s %6s %10s %8s\n" "-----" "-----" "--------" "-----"
     sqlite3 -separator '|' "$DB" "
         $FILTER_SETUP
         $NORMALIZE_CTE
         SELECT
             model,
             COUNT(*),
-            ROUND(AVG(duration_seconds), 1)
+            ROUND(AVG(duration_seconds), 1),
+            CASE WHEN AVG(duration_seconds) > 0
+                THEN ROUND(AVG(tokens_output * 1.0 / duration_seconds), 1)
+                ELSE 0 END
         FROM split_models
         GROUP BY model
         ORDER BY COUNT(*) DESC;
-    " | while IFS='|' read -r model cnt avg; do
-        printf "  %-40s %6s %10s\n" "$model" "$cnt" "$avg"
+    " | while IFS='|' read -r model cnt avg tps; do
+        printf "  %-40s %6s %10s %8s\n" "$model" "$cnt" "$avg" "$tps"
     done
 }
 
