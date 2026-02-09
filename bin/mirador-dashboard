@@ -54,6 +54,14 @@ if [ "$row_count" -eq 0 ]; then
     exit 0
 fi
 
+# Build list of installed ollama models for filtering
+INSTALLED_MODELS=$(ollama list 2>/dev/null | tail -n +2 | awk '{print $1}' | sed 's/:latest$//')
+model_installed() {
+    local m="$1"
+    local bare="${m%:latest}"
+    echo "$INSTALLED_MODELS" | grep -qxF "$bare"
+}
+
 divider() {
     printf '%*s\n' 70 '' | tr ' ' '-'
 }
@@ -82,6 +90,9 @@ show_overview() {
         printf "  %-24s %ss\n" "Total time:" "$secs"
         printf "  %-24s %s to %s\n" "Date range:" "$first" "$last"
     done
+    local model_count
+    model_count=$(echo "$INSTALLED_MODELS" | grep -c .)
+    printf "  %-24s %s\n" "Installed models:" "$model_count"
 }
 
 # --- BY CHAIN TYPE ---
@@ -131,7 +142,9 @@ show_models() {
         GROUP BY model
         ORDER BY COUNT(*) DESC;
     " | while IFS='|' read -r model cnt avg; do
-        printf "  %-40s %6s %10s\n" "$model" "$cnt" "$avg"
+        if model_installed "$model"; then
+            printf "  %-40s %6s %10s\n" "$model" "$cnt" "$avg"
+        fi
     done
 }
 
