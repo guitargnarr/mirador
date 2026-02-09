@@ -1,0 +1,210 @@
+#!/bin/bash
+# Mirador Model Benchmark - Exercise every installed model with domain-appropriate prompts
+# Logs to ~/.mirador/metrics.db via mirador_metrics.sh for dashboard visibility
+#
+# Each model gets a standardized prompt matched to its domain.
+# Same prompt per domain = repeatable consistency ranking.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/mirador_metrics.sh"
+
+# Models already benchmarked (skip these)
+ALREADY_TESTED=$(sqlite3 "$METRICS_DB" "SELECT DISTINCT models_used FROM executions;" 2>/dev/null \
+    | tr '[]",' '\n' | sed 's/^ *//;s/ *$//' | grep -v '^$' | sed 's/:latest$//' | sort -u)
+
+is_tested() {
+    echo "$ALREADY_TESTED" | grep -qxF "$1"
+}
+
+# Domain-specific standardized prompts (repeatable, deterministic evaluation)
+prompt_for() {
+    local model="$1"
+    case "$model" in
+        # Financial / Tax / Wealth
+        financial_calculator|financial_planning_expert_v6|cpa-wealth-advisor|business-tax-2026|homeowner-tax-strategies|wealth-mindset|cot-business-tax-strategist|cot-passive-income-strategist|passive-income-expert|cot-deal-structurer|deal-structuring-expert|cot-real-estate-investor|real-estate-investor|cot-entity-structure-advisor|ngo-corporate-structures)
+            echo "A 35-year-old software engineer earns 120K annually, has 50K in savings, no debt, and wants to build passive income streams. Provide exactly 3 specific, actionable strategies ranked by risk-adjusted return. Include estimated monthly income for each."
+            ;;
+        # Career / Professional
+        matthew-career-coach|barrier-breaker|linkedin_voice_architect|cot-career-strategist|cot-opportunity-decoder|skill-stack-expert|skill-stacker|client-prospector)
+            echo "A mid-career developer with 8 years of Python and cloud experience wants to transition into AI/ML engineering leadership. Provide exactly 3 concrete next steps with specific timelines and measurable milestones."
+            ;;
+        # Louisville / Local
+        louisville-job-market|louisville_expert_v2|local_market_expert)
+            echo "Compare the tech job market in Louisville KY across three sectors: healthcare IT, fintech, and SaaS startups. Provide salary ranges, top 3 employers per sector, and growth trajectory for 2025-2026."
+            ;;
+        # Music / Guitar
+        guitar_tone_architect|master_guitar_instructor|drum_architect|rhythm_architect|lead_architect|audio_production_strategist|performance_anxiety_coach|touring_readiness_coach)
+            echo "Design a 30-day practice routine for an intermediate guitarist transitioning from rhythm to lead. Include exactly 5 daily exercises with specific BPM targets, time allocations, and progression milestones."
+            ;;
+        # Health / Wellness
+        health_wellness_optimizer)
+            echo "Create a weekly wellness plan for a 35-year-old desk worker who wants to improve energy, reduce back pain, and sleep better. Provide exactly 5 daily habits with specific timing and measurable goals."
+            ;;
+        # Coding / Software
+        code-executor|codellama:7b|cot-api-designer|cot-performance-engineer|cot-software-architect|full-stack-engineer|elite-frontend|qwen2.5-coder:7b|qwen2.5-coder:32b|deepseek-r1:7b|deepseek-r1:14b)
+            echo "Design a REST API for a task management system with users, projects, and tasks. Provide exactly 5 core endpoints with HTTP methods, request/response schemas, and authentication strategy. Use JSON format."
+            ;;
+        # Content / Writing
+        content_strategist_pro|humanizer|english-to-spanish)
+            echo "Write a 150-word LinkedIn post announcing a career transition from software engineering to AI/ML leadership. Tone: confident but humble. Include a specific call-to-action."
+            ;;
+        # Productivity / Decision
+        productivity_optimizer|productivity-systems-expert|cot-productivity-engineer|decision_enhancer|decision_simplifier_v2)
+            echo "A developer spends 3 hours daily in meetings, 2 hours on code review, and only 3 hours coding. Provide exactly 3 specific time optimization strategies with expected time savings and implementation steps."
+            ;;
+        # Context / Synthesis / Strategy
+        universal_context_provider|cross_model_synthesizer|mirador_self_reflection_guardian|enhanced_agent_fast_v6|unified-systems-architect)
+            echo "Analyze the tradeoffs between building a custom AI orchestration system versus using LangChain or CrewAI. Evaluate on: maintainability, performance, flexibility, and learning curve. Provide a clear recommendation."
+            ;;
+        # Knowledge / Ontology / Expert Systems
+        llm-orchestration-ontology|kg-traversal-expert|prompt-engineering-expert|world-model-expert|app-architecture-expert|performance-percentiles-expert|design-oracle|design-system-atlas)
+            echo "Describe the key architectural patterns for building a multi-model AI orchestration system. Cover model routing, context accumulation, error handling, and output synthesis. Provide exactly 4 patterns with tradeoffs."
+            ;;
+        # Data / Analysis
+        data-analyzer-qwen|fact_validation_specialist|instruction_generation_specialist|opportunity_identification_specialist|digital_asset_curator)
+            echo "Given a dataset of 10000 customer transactions with columns: date, amount, category, customer_id, and region. Describe exactly 3 analytical approaches to identify the most valuable customer segments. Include specific metrics and methods."
+            ;;
+        # Base LLMs
+        llama3|llama3.2|llama3.2:1b|llama3.2:3b|llama3.2_balanced|gemma2:9b|mistral:7b|phi3:mini|phi4|qwen2.5:7b|qwen2.5:1.5b|glm4:9b|yi:34b|quick-advisor-phi)
+            echo "Explain the key differences between transformer-based and state-space model architectures for sequence modeling. Cover: attention mechanism vs recurrence, computational complexity, long-range dependencies, and practical tradeoffs. Be specific and concise."
+            ;;
+        *)
+            echo "You are a specialized AI model. Describe your primary capabilities in exactly 3 bullet points, then answer: What is the most impactful advice you can give a software engineer transitioning to AI/ML leadership?"
+            ;;
+    esac
+}
+
+# Map model to task_type for metrics
+task_type_for() {
+    local model="$1"
+    case "$model" in
+        financial_calculator|financial_planning_expert_v6|cpa-wealth-advisor|business-tax-2026|homeowner-tax-strategies|wealth-mindset|cot-business-tax-strategist|cot-passive-income-strategist|passive-income-expert|cot-deal-structurer|deal-structuring-expert|cot-real-estate-investor|real-estate-investor|cot-entity-structure-advisor|ngo-corporate-structures)
+            echo "benchmark:financial" ;;
+        matthew-career-coach|barrier-breaker|linkedin_voice_architect|cot-career-strategist|cot-opportunity-decoder|skill-stack-expert|skill-stacker|client-prospector)
+            echo "benchmark:career" ;;
+        louisville-job-market|louisville_expert_v2|local_market_expert)
+            echo "benchmark:local" ;;
+        guitar_tone_architect|master_guitar_instructor|drum_architect|rhythm_architect|lead_architect|audio_production_strategist|performance_anxiety_coach|touring_readiness_coach)
+            echo "benchmark:music" ;;
+        health_wellness_optimizer)
+            echo "benchmark:health" ;;
+        code-executor|codellama:7b|cot-api-designer|cot-performance-engineer|cot-software-architect|full-stack-engineer|elite-frontend|qwen2.5-coder:7b|qwen2.5-coder:32b|deepseek-r1:7b|deepseek-r1:14b)
+            echo "benchmark:code" ;;
+        content_strategist_pro|humanizer|english-to-spanish)
+            echo "benchmark:content" ;;
+        productivity_optimizer|productivity-systems-expert|cot-productivity-engineer|decision_enhancer|decision_simplifier_v2)
+            echo "benchmark:productivity" ;;
+        universal_context_provider|cross_model_synthesizer|mirador_self_reflection_guardian|enhanced_agent_fast_v6|unified-systems-architect)
+            echo "benchmark:strategy" ;;
+        llm-orchestration-ontology|kg-traversal-expert|prompt-engineering-expert|world-model-expert|app-architecture-expert|performance-percentiles-expert|design-oracle|design-system-atlas)
+            echo "benchmark:architecture" ;;
+        data-analyzer-qwen|fact_validation_specialist|instruction_generation_specialist|opportunity_identification_specialist|digital_asset_curator)
+            echo "benchmark:data" ;;
+        llama3|llama3.2|llama3.2:1b|llama3.2:3b|llama3.2_balanced|gemma2:9b|mistral:7b|phi3:mini|phi4|qwen2.5:7b|qwen2.5:1.5b|glm4:9b|yi:34b|quick-advisor-phi)
+            echo "benchmark:base-llm" ;;
+        *)
+            echo "benchmark:general" ;;
+    esac
+}
+
+# Get all installed models
+ALL_MODELS=$(ollama list 2>/dev/null | tail -n +2 | awk '{print $1}' | sed 's/:latest$//' | sort)
+TOTAL=$(echo "$ALL_MODELS" | wc -l | tr -d ' ')
+SKIPPED=0
+RAN=0
+FAILED=0
+
+echo "========================================"
+echo "  MIRADOR MODEL BENCHMARK"
+echo "  $(date '+%Y-%m-%d %H:%M')"
+echo "  $TOTAL models installed"
+echo "========================================"
+echo ""
+
+# Options
+ONLY_NEW=false
+DRY_RUN=false
+FILTER=""
+BATCH=0          # 0 = unlimited
+COOLDOWN=5       # seconds between models to let GPU cool
+for arg in "$@"; do
+    case "$arg" in
+        --only-new) ONLY_NEW=true ;;
+        --dry-run) DRY_RUN=true ;;
+        --domain=*) FILTER="${arg#--domain=}" ;;
+        --batch=*) BATCH="${arg#--batch=}" ;;
+        --cooldown=*) COOLDOWN="${arg#--cooldown=}" ;;
+    esac
+done
+
+while IFS= read -r model; do
+    [ -z "$model" ] && continue
+
+    if $ONLY_NEW && is_tested "$model"; then
+        SKIPPED=$((SKIPPED + 1))
+        continue
+    fi
+
+    task_type=$(task_type_for "$model")
+
+    # Filter by domain if specified
+    if [ -n "$FILTER" ] && [[ "$task_type" != *"$FILTER"* ]]; then
+        SKIPPED=$((SKIPPED + 1))
+        continue
+    fi
+
+    prompt=$(prompt_for "$model")
+
+    if $DRY_RUN; then
+        printf "  [DRY] %-40s  %s\n" "$model" "$task_type"
+        continue
+    fi
+
+    printf "  [%d/%d] %-40s " "$((RAN + SKIPPED + FAILED + 1))" "$TOTAL" "$model"
+
+    # Run the model with timeout
+    session_id="bench-$(date +%Y%m%d%H%M%S)-$$-$RAN"
+    metrics_start "$session_id" "$prompt" "$task_type"
+
+    start_ts=$(date +%s)
+    output=$(echo "$prompt" | timeout 120 ollama run "$model" 2>&1) || true
+    end_ts=$(date +%s)
+    elapsed=$((end_ts - start_ts))
+    output_len=${#output}
+
+    if [ "$output_len" -lt 20 ]; then
+        # Model returned empty or error
+        metrics_log_model "$model" "$output_len" "$elapsed" 0
+        metrics_finish 0
+        FAILED=$((FAILED + 1))
+        printf "FAIL  %3ds  %5d chars\n" "$elapsed" "$output_len"
+    else
+        metrics_log_model "$model" "$output_len" "$elapsed" 1
+        metrics_finish 1
+        RAN=$((RAN + 1))
+        printf "OK    %3ds  %5d chars\n" "$elapsed" "$output_len"
+    fi
+
+    # Batch limit check
+    if [ "$BATCH" -gt 0 ] && [ "$((RAN + FAILED))" -ge "$BATCH" ]; then
+        echo ""
+        echo "  Batch limit ($BATCH) reached. Run again with --only-new to continue."
+        break
+    fi
+
+    # Cooldown between models
+    if [ "$COOLDOWN" -gt 0 ] && ! $DRY_RUN; then
+        sleep "$COOLDOWN"
+    fi
+
+done <<< "$ALL_MODELS"
+
+echo ""
+echo "========================================"
+echo "  COMPLETE"
+echo "  Ran: $RAN  Skipped: $SKIPPED  Failed: $FAILED"
+echo "========================================"
+echo ""
+echo "  Run 'mirador-dashboard' to see updated metrics."
