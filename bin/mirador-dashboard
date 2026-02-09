@@ -56,11 +56,40 @@ fi
 
 # Build list of installed ollama models for filtering
 INSTALLED_MODELS=$(ollama list 2>/dev/null | tail -n +2 | awk '{print $1}' | sed 's/:latest$//')
-model_installed() {
-    local m="$1"
-    local bare="${m%:latest}"
-    echo "$INSTALLED_MODELS" | grep -qxF "$bare"
-}
+
+# Load installed models into a temp SQLite table for SQL-level filtering
+FILTER_SETUP="CREATE TEMP TABLE IF NOT EXISTS installed_models(name TEXT PRIMARY KEY);"
+while IFS= read -r m; do
+    [ -n "$m" ] && FILTER_SETUP="${FILTER_SETUP}INSERT OR IGNORE INTO installed_models VALUES('$m');"
+done <<< "$INSTALLED_MODELS"
+
+# Common CTE: normalize models_used, strip :latest, filter to installed only
+# Usage: prepend NORMALIZE_CTE to queries that need per-execution model filtering
+NORMALIZE_CTE="
+WITH split_raw AS (
+    SELECT
+        e.id AS exec_id,
+        REPLACE(TRIM(j.value, '\"\" '), ':latest', '') AS model,
+        e.duration_seconds,
+        e.task_type,
+        e.start_time,
+        e.prompt,
+        e.success,
+        e.tokens_output
+    FROM executions e,
+         json_each(
+             CASE
+                 WHEN e.models_used LIKE '[%' THEN e.models_used
+                 ELSE '[\"' || REPLACE(e.models_used, ',', '\",\"') || '\"]'
+             END
+         ) AS j
+),
+split_models AS (
+    SELECT * FROM split_raw WHERE model != '' AND model IN (SELECT name FROM installed_models)
+),
+valid_executions AS (
+    SELECT DISTINCT exec_id FROM split_models
+)"
 
 divider() {
     printf '%*s\n' 70 '' | tr ' ' '-'
@@ -119,32 +148,18 @@ show_models() {
     header "BY MODEL"
     printf "  %-40s %6s %10s\n" "MODEL" "COUNT" "AVG(sec)"
     printf "  %-40s %6s %10s\n" "-----" "-----" "--------"
-    # Normalize models_used: strip JSON brackets/quotes, then split on comma
     sqlite3 -separator '|' "$DB" "
-        WITH split_models AS (
-            SELECT
-                TRIM(j.value, '\" ') AS model,
-                duration_seconds
-            FROM executions,
-                 json_each(
-                     CASE
-                         WHEN models_used LIKE '[%' THEN models_used
-                         ELSE '[\"' || REPLACE(models_used, ',', '\",\"') || '\"]'
-                     END
-                 ) AS j
-        )
+        $FILTER_SETUP
+        $NORMALIZE_CTE
         SELECT
             model,
             COUNT(*),
             ROUND(AVG(duration_seconds), 1)
         FROM split_models
-        WHERE model != ''
         GROUP BY model
         ORDER BY COUNT(*) DESC;
     " | while IFS='|' read -r model cnt avg; do
-        if model_installed "$model"; then
-            printf "  %-40s %6s %10s\n" "$model" "$cnt" "$avg"
-        fi
+        printf "  %-40s %6s %10s\n" "$model" "$cnt" "$avg"
     done
 }
 
@@ -174,8 +189,12 @@ show_performance() {
     echo ""
     echo "  Fastest:"
     sqlite3 -separator '|' "$DB" "
-        SELECT COALESCE(task_type,'unknown'), ROUND(duration_seconds,1), SUBSTR(prompt,1,50)
-        FROM executions ORDER BY duration_seconds ASC LIMIT 3;
+        $FILTER_SETUP
+        $NORMALIZE_CTE
+        SELECT COALESCE(e.task_type,'unknown'), ROUND(e.duration_seconds,1), SUBSTR(e.prompt,1,50)
+        FROM executions e
+        WHERE e.id IN (SELECT exec_id FROM valid_executions)
+        ORDER BY e.duration_seconds ASC LIMIT 3;
     " | while IFS='|' read -r ttype dur prompt; do
         printf "    %6ss  %-18s  %s\n" "$dur" "$ttype" "$prompt"
     done
@@ -183,8 +202,12 @@ show_performance() {
     echo ""
     echo "  Slowest:"
     sqlite3 -separator '|' "$DB" "
-        SELECT COALESCE(task_type,'unknown'), ROUND(duration_seconds,1), SUBSTR(prompt,1,50)
-        FROM executions ORDER BY duration_seconds DESC LIMIT 3;
+        $FILTER_SETUP
+        $NORMALIZE_CTE
+        SELECT COALESCE(e.task_type,'unknown'), ROUND(e.duration_seconds,1), SUBSTR(e.prompt,1,50)
+        FROM executions e
+        WHERE e.id IN (SELECT exec_id FROM valid_executions)
+        ORDER BY e.duration_seconds DESC LIMIT 3;
     " | while IFS='|' read -r ttype dur prompt; do
         printf "    %6ss  %-18s  %s\n" "$dur" "$ttype" "$prompt"
     done
@@ -194,8 +217,12 @@ show_performance() {
     printf "    %-20s %12s\n" "TYPE" "AVG_TOKENS"
     printf "    %-20s %12s\n" "----" "----------"
     sqlite3 -separator '|' "$DB" "
-        SELECT COALESCE(task_type,'unknown'), ROUND(AVG(tokens_output),0)
-        FROM executions GROUP BY task_type ORDER BY AVG(tokens_output) DESC;
+        $FILTER_SETUP
+        $NORMALIZE_CTE
+        SELECT COALESCE(e.task_type,'unknown'), ROUND(AVG(e.tokens_output),0)
+        FROM executions e
+        WHERE e.id IN (SELECT exec_id FROM valid_executions)
+        GROUP BY e.task_type ORDER BY AVG(e.tokens_output) DESC;
     " | while IFS='|' read -r ttype avg; do
         printf "    %-20s %12s\n" "$ttype" "$avg"
     done
