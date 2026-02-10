@@ -36,71 +36,74 @@
 % ══════════════════════════════════════════════════════════════════
 % COVER PAGE
 % ══════════════════════════════════════════════════════════════════
+% Define per-book cover colors
+\definecolor{cvbg}{HTML}{<< cover.bg >>}
+\definecolor{cvblobdk}{HTML}{<< cover.blob_dk >>}
+\definecolor{cvbloblt}{HTML}{<< cover.blob_lt >>}
+\definecolor{cvacc}{HTML}{<< cover.accent >>}
+\definecolor{cvacclt}{HTML}{<< cover.accent_lt >>}
+
 \thispagestyle{empty}
 \begin{tikzpicture}[remember picture, overlay]
 
-  % ── Deep black background ──────────────────────────────────────
-  \fill[coverblack] (current page.south west) rectangle (current page.north east);
+  % ── Deep background ────────────────────────────────────────────
+  \fill[cvbg] (current page.south west) rectangle (current page.north east);
 
   % ── Layer 1: Large translucent organic shapes (depth) ──────────
-  % Upper-right warm blob
-  \fill[warmchar, opacity=0.45]
+  \fill[cvbloblt, opacity=0.45]
     ([xshift=0.55\paperwidth, yshift=0.78\paperheight]current page.south west)
     circle [x radius=3.8in, y radius=4.2in];
-  % Center-left darker blob
-  \fill[deepchar, opacity=0.5]
+  \fill[cvblobdk, opacity=0.5]
     ([xshift=0.25\paperwidth, yshift=0.55\paperheight]current page.south west)
     circle [x radius=3.2in, y radius=3.6in];
-  % Lower-right subtle blob
-  \fill[warmchar, opacity=0.3]
+  \fill[cvbloblt, opacity=0.3]
     ([xshift=0.72\paperwidth, yshift=0.22\paperheight]current page.south west)
     circle [x radius=2.8in, y radius=3.0in];
-  % Upper-left edge blob
-  \fill[deepchar, opacity=0.35]
+  \fill[cvblobdk, opacity=0.35]
     ([xshift=0.08\paperwidth, yshift=0.85\paperheight]current page.south west)
     circle [x radius=2.5in, y radius=2.8in];
 
-  % ── Layer 2: Concentric resonance rings (sound wave motif) ─────
+  % ── Layer 2: Concentric resonance rings ────────────────────────
   \foreach \r/\o in {1.8/0.06, 2.4/0.05, 3.0/0.04, 3.6/0.035, 4.2/0.03, 4.8/0.025, 5.4/0.02} {
-    \draw[amber, opacity=\o, line width=0.4pt]
+    \draw[cvacc, opacity=\o, line width=0.4pt]
       ([xshift=0.42\paperwidth, yshift=0.48\paperheight]current page.south west)
       circle [radius=\r in];
   }
 
-  % ── Layer 3: Subtle geometric arcs (editorial refinement) ──────
-  \draw[dimgold, opacity=0.08, line width=0.6pt]
+  % ── Layer 3: Subtle geometric arcs ─────────────────────────────
+  \draw[cvacc, opacity=0.08, line width=0.6pt]
     ([xshift=0.15\paperwidth, yshift=0.70\paperheight]current page.south west)
     arc [start angle=160, end angle=20, x radius=3.5in, y radius=2in];
-  \draw[dimgold, opacity=0.06, line width=0.4pt]
+  \draw[cvacc, opacity=0.06, line width=0.4pt]
     ([xshift=0.60\paperwidth, yshift=0.25\paperheight]current page.south west)
     arc [start angle=200, end angle=340, x radius=4in, y radius=2.5in];
-  \draw[copper, opacity=0.05, line width=0.5pt]
+  \draw[cvacc, opacity=0.05, line width=0.5pt]
     ([xshift=0.80\paperwidth, yshift=0.65\paperheight]current page.south west)
     arc [start angle=120, end angle=240, x radius=2in, y radius=3in];
 
   % ── Layer 4: Fine scattered diamond accents ────────────────────
   \foreach \x/\y/\o in {0.18/0.35/0.12, 0.78/0.72/0.10, 0.85/0.28/0.08, 0.12/0.78/0.09, 0.65/0.15/0.07, 0.35/0.88/0.06} {
     \node[rotate=45, opacity=\o] at ([xshift=\x\paperwidth, yshift=\y\paperheight]current page.south west)
-      {\color{amber}\tiny$\diamond$};
+      {\color{cvacc}\tiny$\diamond$};
   }
 
-  % ── Layer 5: Horizontal rule with warm glow ────────────────────
-  \shade[left color=coverblack, right color=amber, middle color=amber, opacity=0.6]
+  % ── Layer 5: Horizontal rule with glow ─────────────────────────
+  \shade[left color=cvbg, right color=cvacc, middle color=cvacc, opacity=0.6]
     ([xshift=1.8in, yshift=0.635\paperheight]current page.south west)
     rectangle ([xshift=-1.8in, yshift=0.638\paperheight]current page.south east);
 
   % ── Top border accent ──────────────────────────────────────────
-  \shade[left color=coverblack, right color=copper, middle color=amber]
+  \shade[left color=cvbg, right color=cvacc, middle color=cvacc]
     ([yshift=-3pt]current page.north west) rectangle ([yshift=-5pt]current page.north east);
 
   % ── Bottom border accent ───────────────────────────────────────
-  \shade[left color=copper, right color=coverblack, middle color=amber]
+  \shade[left color=cvacc, right color=cvbg, middle color=cvacc]
     ([yshift=3pt]current page.south west) rectangle ([yshift=5pt]current page.south east);
 
   % ── Typography ─────────────────────────────────────────────────
 
   % Category label (spaced small caps)
-  \node[anchor=center, text=amber, font=\footnotesize\scshape, inner sep=0pt]
+  \node[anchor=center, text=cvacc, font=\footnotesize\scshape, inner sep=0pt]
     at ([yshift=0.80\paperheight]current page.south)
     {C\kern0.12em O\kern0.12em M\kern0.12em P\kern0.12em L\kern0.12em E\kern0.12em T\kern0.12em E\kern0.35em R\kern0.12em E\kern0.12em F\kern0.12em E\kern0.12em R\kern0.12em E\kern0.12em N\kern0.12em C\kern0.12em E};
 
@@ -109,12 +112,12 @@
     at ([yshift=0.72\paperheight]current page.south) {<< title >>};
 
   % Accent rule under title
-  \draw[amber, line width=1.2pt]
+  \draw[cvacc, line width=1.2pt]
     ([xshift=-1.2in, yshift=0.655\paperheight]current page.south) --
     ([xshift=1.2in, yshift=0.655\paperheight]current page.south);
 
   % Subtitle
-  \node[anchor=center, text=paleamber, font=\large, inner sep=0pt]
+  \node[anchor=center, text=cvacclt, font=\large, inner sep=0pt]
     at ([yshift=0.62\paperheight]current page.south)
     {Every Key \quad\textperiodcentered\quad Every Position \quad\textperiodcentered\quad Every Exercise};
 
@@ -123,16 +126,16 @@
     at ([yshift=0.38\paperheight]current page.south) {<< scale_description >>};
 
   % Stats line
-  \node[anchor=center, text=amber, font=\normalsize\bfseries]
+  \node[anchor=center, text=cvacc, font=\normalsize\bfseries]
     at ([yshift=0.28\paperheight]current page.south)
     {<< num_keys >> Keys \quad\textbullet\quad << num_positions >> Positions \quad\textbullet\quad << total_exercises >> Exercises \quad\textbullet\quad << total_tabs >> Tab Blocks};
 
   % Footer
-  \node[anchor=center, text=dimgold, font=\footnotesize, opacity=0.7]
+  \node[anchor=center, text=cvacc, font=\footnotesize, opacity=0.5]
     at ([yshift=0.10\paperheight]current page.south)
     {All tablature verified by mathematical fretboard computation};
 
-  \node[anchor=center, text=dimgold, font=\scriptsize, opacity=0.5]
+  \node[anchor=center, text=cvacc, font=\scriptsize, opacity=0.35]
     at ([yshift=0.07\paperheight]current page.south)
     {Generated by mirador-tab-generator};
 
