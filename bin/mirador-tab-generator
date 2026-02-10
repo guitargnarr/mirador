@@ -436,6 +436,190 @@ EXERCISE_TYPES = {
 }
 
 
+# ── Chord Voicing System ──────────────────────────────────────────────
+
+# Barre chord shapes: (root_string_idx, offsets_from_barre_fret)
+# -1 = muted string
+BARRE_SHAPES = {
+    'major_E':  (0, [0, 2, 2, 1, 0, 0]),
+    'major_A':  (1, [-1, 0, 2, 2, 2, 0]),
+    'minor_E':  (0, [0, 2, 2, 0, 0, 0]),
+    'minor_A':  (1, [-1, 0, 2, 2, 1, 0]),
+    'dom7_E':   (0, [0, 2, 0, 1, 0, 0]),
+    'dom7_A':   (1, [-1, 0, 2, 0, 2, 0]),
+    'min7_E':   (0, [0, 2, 0, 0, 0, 0]),
+    'min7_A':   (1, [-1, 0, 2, 0, 1, 0]),
+    'maj7_A':   (1, [-1, 0, 2, 1, 2, 0]),
+    'dim_A':    (1, [-1, 0, 1, 2, 1, -1]),
+    'aug_E':    (0, [0, 3, 2, 1, 1, 0]),
+    'sus2_A':   (1, [-1, 0, 2, 2, 0, 0]),
+    'sus4_E':   (0, [0, 2, 2, 2, 0, 0]),
+    'power_E':  (0, [0, 2, 2, -1, -1, -1]),
+    'power_A':  (1, [-1, 0, 2, 2, -1, -1]),
+}
+
+# Default shape key per chord type
+CHORD_TYPE_SHAPES = {
+    'major': 'major_E', 'minor': 'minor_E', 'dom7': 'dom7_E',
+    'min7': 'min7_E', 'maj7': 'maj7_A', 'dim': 'dim_A',
+    'aug': 'aug_E', 'sus2': 'sus2_A', 'sus4': 'sus4_E',
+    'power': 'power_E',
+}
+
+# Common open chord voicings: (root, chord_type) -> [frets], -1 = muted
+OPEN_CHORDS = {
+    ('C', 'major'):  [-1, 3, 2, 0, 1, 0],
+    ('C', 'dom7'):   [-1, 3, 2, 3, 1, 0],
+    ('D', 'major'):  [-1, -1, 0, 2, 3, 2],
+    ('D', 'minor'):  [-1, -1, 0, 2, 3, 1],
+    ('D', 'dom7'):   [-1, -1, 0, 2, 1, 2],
+    ('E', 'major'):  [0, 2, 2, 1, 0, 0],
+    ('E', 'minor'):  [0, 2, 2, 0, 0, 0],
+    ('E', 'dom7'):   [0, 2, 0, 1, 0, 0],
+    ('E', 'min7'):   [0, 2, 0, 0, 0, 0],
+    ('F', 'major'):  [1, 3, 3, 2, 1, 1],
+    ('G', 'major'):  [3, 2, 0, 0, 0, 3],
+    ('G', 'dom7'):   [3, 2, 0, 0, 0, 1],
+    ('A', 'major'):  [-1, 0, 2, 2, 2, 0],
+    ('A', 'minor'):  [-1, 0, 2, 2, 1, 0],
+    ('A', 'dom7'):   [-1, 0, 2, 0, 2, 0],
+    ('A', 'min7'):   [-1, 0, 2, 0, 1, 0],
+    ('B', 'minor'):  [-1, 2, 4, 4, 3, 2],
+    ('B', 'dom7'):   [-1, 2, 1, 2, 0, 2],
+}
+
+# Diatonic chord qualities for companion chord generation
+# Maps parent scale type -> list of (degree_index, chord_quality)
+DIATONIC_CHORDS = {
+    'natural-minor': [
+        (0, 'minor'), (1, 'dim'), (2, 'major'), (3, 'minor'),
+        (4, 'minor'), (5, 'major'), (6, 'major'),
+    ],
+    'natural-major': [
+        (0, 'major'), (1, 'minor'), (2, 'minor'), (3, 'major'),
+        (4, 'major'), (5, 'minor'), (6, 'dim'),
+    ],
+}
+
+# Which diatonic degrees to show as companion chords per scale type
+COMPANION_DEGREES = {
+    'minor-pentatonic': [0, 2, 3, 4, 6],   # i, III, iv, v, VII
+    'major-pentatonic': [0, 1, 3, 4, 5],    # I, ii, IV, V, vi
+    'blues':            None,                 # special: I7, IV7, V7
+    'natural-minor':    [0, 2, 3, 4, 5, 6],  # i, III, iv, v, VI, VII
+    'natural-major':    [0, 1, 3, 4, 5],      # I, ii, IV, V, vi
+    'dorian':           [0, 2, 3, 6],          # i, III, IV, VII
+    'mixolydian':       [0, 3, 4, 6],          # I, IV, v, VII
+    'harmonic-minor':   [0, 3, 4, 5],          # i, iv, V, VI
+}
+
+# Parent scale for diatonic chord lookup
+SCALE_PARENT = {
+    'minor-pentatonic': 'natural-minor',
+    'major-pentatonic': 'natural-major',
+    'blues':            'natural-minor',
+    'natural-minor':    'natural-minor',
+    'natural-major':    'natural-major',
+    'dorian':           'natural-minor',
+    'mixolydian':       'natural-major',
+    'harmonic-minor':   'natural-minor',
+}
+
+
+def get_chord_voicing(root, chord_type='minor'):
+    """Return a 6-element list of fret numbers for a chord voicing.
+
+    Returns list where -1 = muted string. Checks open chords first,
+    then transposes barre shapes.
+    """
+    # Check open chord overrides first
+    key = (root, chord_type)
+    if key in OPEN_CHORDS:
+        return OPEN_CHORDS[key]
+
+    # Transpose barre shape
+    shape_key = CHORD_TYPE_SHAPES.get(chord_type)
+    if not shape_key or shape_key not in BARRE_SHAPES:
+        return [-1, -1, -1, -1, -1, -1]
+
+    root_string, offsets = BARRE_SHAPES[shape_key]
+    # Find the barre fret: where root note falls on the root string
+    open_note = TUNING[root_string]
+    open_idx = CHROMATIC.index(open_note)
+    root_idx = CHROMATIC.index(root)
+    barre = (root_idx - open_idx) % 12
+
+    voicing = []
+    for s in range(6):
+        if offsets[s] == -1:
+            voicing.append(-1)
+        else:
+            voicing.append(barre + offsets[s])
+    return voicing
+
+
+def get_companion_chords(root, scale_type='minor-pentatonic'):
+    """Return companion chords for a scale as [(name, voicing), ...]."""
+    # Special case: blues uses I7 IV7 V7
+    if scale_type == 'blues' or COMPANION_DEGREES.get(scale_type) is None:
+        parent = SCALE_PARENT.get(scale_type, 'natural-minor')
+        parent_notes = get_scale_notes(root, parent)
+        chords = []
+        for degree in [0, 3, 4]:  # I, IV, V
+            chord_root = parent_notes[degree]
+            dr = display_note(chord_root, root)
+            voicing = get_chord_voicing(chord_root, 'dom7')
+            chords.append((f"{dr}7", voicing))
+        return chords
+
+    parent = SCALE_PARENT.get(scale_type, 'natural-minor')
+    parent_notes = get_scale_notes(root, parent)
+    diatonic = DIATONIC_CHORDS.get(parent, [])
+    degrees = COMPANION_DEGREES.get(scale_type, [0, 2, 3, 4, 6])
+
+    chords = []
+    for deg in degrees:
+        if deg >= len(parent_notes) or deg >= len(diatonic):
+            continue
+        chord_root = parent_notes[diatonic[deg][0]]
+        chord_type = diatonic[deg][1]
+        dr = display_note(chord_root, root)
+        suffix = '' if chord_type == 'major' else 'm' if chord_type == 'minor' else 'dim'
+        voicing = get_chord_voicing(chord_root, chord_type)
+        chords.append((f"{dr}{suffix}", voicing))
+    return chords
+
+
+def render_chord_tab(chord_list):
+    """Render chords side-by-side as vertical tab stacks.
+
+    chord_list: [(name, voicing), ...] where voicing is 6-element list.
+    """
+    if not chord_list:
+        return ""
+    # Column width based on longest chord name
+    col_w = max(len(name) for name, _ in chord_list) + 4
+
+    output = []
+    # Header line with chord names
+    header = '  ' + ''.join(name.center(col_w) for name, _ in chord_list)
+    output.append(header)
+
+    for s in reversed(range(6)):
+        label = TUNING_LABELS[s]
+        parts = []
+        for name, voicing in chord_list:
+            fret = voicing[s]
+            if fret == -1:
+                fret_str = 'X'
+            else:
+                fret_str = str(fret)
+            cell = f"|--{fret_str}--|"
+            parts.append(cell.center(col_w))
+        output.append(f"  {label}{''.join(parts)}")
+    return '\n'.join(output)
+
+
 def generate_exercise(pos_data, exercise_type='legato'):
     """Generate a named exercise for a position."""
     if exercise_type not in EXERCISE_TYPES:
@@ -649,6 +833,20 @@ def main():
                 print(generate_exercise(pos, ex_type))
         else:
             print(f"Position {pos_num} not found")
+
+    elif cmd == 'chord':
+        if len(sys.argv) < 3:
+            print("Usage: mirador-tab-generator chord Am-pentatonic")
+            print("  Shows companion chords for a scale/key")
+            sys.exit(1)
+        root, scale_type = parse_scale_arg(sys.argv[2])
+        dr = display_root(root)
+        chords = get_companion_chords(root, scale_type)
+        print(f"\nCompanion Chords for {dr} {scale_type.replace('-', ' ').title()}")
+        print(f"Play these chords over your {dr} {scale_type.replace('-', ' ').title()} exercises:\n")
+        print(render_chord_tab(chords))
+        progression = ' - '.join(name for name, _ in chords)
+        print(f"\n  Progression: {progression}")
 
     elif cmd == 'fretboard':
         if len(sys.argv) < 3:

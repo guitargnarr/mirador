@@ -6,6 +6,8 @@ Usage:
     mirador-tab-export reference --all-keys minor-pentatonic  # 12 keys x 5 positions
     mirador-tab-export exercises Am-pentatonic --position 1   # all 8 exercise types
     mirador-tab-export exercises Am-pentatonic --position all  # all positions
+    mirador-tab-export book minor-pentatonic                  # complete 12-key book
+    mirador-tab-export book minor-pentatonic --key A          # single key book
     mirador-tab-export reference Am-pentatonic --output /path/to/file.pdf
 """
 
@@ -56,26 +58,31 @@ def render_template(template_name, context):
     return template.render(**context)
 
 
-def compile_pdf(tex_content, output_path):
-    """Write .tex to temp dir, compile with pdflatex, move PDF to output."""
+def compile_pdf(tex_content, output_path, runs=1, timeout=60):
+    """Write .tex to temp dir, compile with pdflatex, move PDF to output.
+
+    runs: number of pdflatex passes (2 needed for TOC/hyperref).
+    timeout: seconds per pdflatex run.
+    """
+    import shutil
     with tempfile.TemporaryDirectory() as tmpdir:
         tex_path = os.path.join(tmpdir, 'output.tex')
         with open(tex_path, 'w') as f:
             f.write(tex_content)
 
-        result = subprocess.run(
-            [PDFLATEX, '-interaction=nonstopmode', '-output-directory', tmpdir, tex_path],
-            capture_output=True, text=True, timeout=30
-        )
+        for i in range(runs):
+            result = subprocess.run(
+                [PDFLATEX, '-interaction=nonstopmode', '-output-directory', tmpdir, tex_path],
+                capture_output=True, text=True, timeout=timeout
+            )
+
         pdf_path = os.path.join(tmpdir, 'output.pdf')
         if not os.path.exists(pdf_path):
             print("LaTeX compilation failed:")
             print(result.stdout[-2000:] if len(result.stdout) > 2000 else result.stdout)
             sys.exit(1)
 
-        # Move PDF to final location
         os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
-        import shutil
         shutil.move(pdf_path, output_path)
 
     print(f"PDF: {output_path}")
@@ -206,6 +213,115 @@ def build_exercises(root, scale_type, pos_num='1', output=None):
     return compile_pdf(tex, output_path)
 
 
+# Key ordering: practical difficulty, not chromatic
+KEY_ORDER_FOUNDATION = ['A', 'E', 'D', 'G', 'C', 'B']
+KEY_ORDER_SHARPS_FLATS = ['F#', 'A#', 'D#', 'G#', 'C#', 'F']
+
+
+def build_book(scale_type, single_key=None, output=None):
+    """Build a complete reference book PDF for a scale type."""
+    dr_label = scale_type.replace('-', ' ').title()
+
+    if single_key:
+        # Resolve enharmonics
+        reverse_enharmonic = {v: k for k, v in tab_gen.ENHARMONIC.items()}
+        internal = reverse_enharmonic.get(single_key, single_key)
+        all_keys = [internal]
+        part_groups = [("", all_keys)]
+        title = f"{tab_gen.display_root(internal)} {dr_label}"
+        default_name = f"{scale_type}_{tab_gen.display_root(internal)}_book.pdf"
+    else:
+        all_keys = KEY_ORDER_FOUNDATION + KEY_ORDER_SHARPS_FLATS
+        part_groups = [
+            ("Foundation Keys", KEY_ORDER_FOUNDATION),
+            ("Sharp and Flat Keys", KEY_ORDER_SHARPS_FLATS),
+        ]
+        title = dr_label
+        default_name = f"{scale_type}_complete_book.pdf"
+
+    parts = []
+    total_keys = 0
+    for part_title, keys in part_groups:
+        chapters = []
+        for root in keys:
+            dr = tab_gen.display_root(root)
+            key_name = f"{dr} {dr_label}"
+            notes = tab_gen.get_scale_notes(root, scale_type)
+            display_notes = [tab_gen.display_note(n, root) for n in notes]
+            degree_names = tab_gen.SCALE_DEGREE_NAMES.get(scale_type, [])
+            info_parts = [f"Notes: {', '.join(display_notes)}"]
+            if degree_names:
+                info_parts.append(f"Degrees: {', '.join(degree_names)}")
+
+            # Scale positions
+            positions = tab_gen.get_scale_positions(root, scale_type)
+            pos_data = []
+            for pos in positions:
+                fmin, fmax = pos['fret_range']
+                tab_text = tab_gen.render_tab_sequential(pos, root, max_cols=MAX_COLS_PORTRAIT)
+                note_parts = []
+                for s in range(6):
+                    label = tab_gen.TUNING_LABELS[s]
+                    for n in pos['strings'][s]:
+                        note_parts.append(f"{label}:{n['fret']}={tab_gen.display_note(n['note'], root)}")
+                pos_data.append({
+                    'number': pos['position'],
+                    'fret_range': f"{fmin}-{fmax}",
+                    'tab': tab_text,
+                    'notes': escape_latex(' | '.join(note_parts)),
+                })
+
+            # Companion chords
+            chords = tab_gen.get_companion_chords(root, scale_type)
+            chords_tab = tab_gen.render_chord_tab(chords)
+            progression = ' - '.join(name for name, _ in chords)
+
+            # Exercises per position
+            exercise_groups = []
+            for pos in positions:
+                ex_list = []
+                for etype in tab_gen.EXERCISE_TYPES:
+                    gen_fn = tab_gen.EXERCISE_TYPES[etype]
+                    name, events = gen_fn(pos)
+                    tab_text = tab_gen.render_exercise_tab(events, max_cols=MAX_COLS_PORTRAIT)
+                    ex_list.append({
+                        'name': escape_latex(name),
+                        'tab': tab_text,
+                    })
+                exercise_groups.append({
+                    'number': pos['position'],
+                    'exercises': ex_list,
+                })
+
+            chapters.append({
+                'title': escape_latex(key_name),
+                'key_name': escape_latex(key_name),
+                'info': escape_latex(' | '.join(info_parts)),
+                'positions': pos_data,
+                'chords_tab': chords_tab,
+                'progression': escape_latex(progression),
+                'exercise_groups': exercise_groups,
+            })
+            total_keys += 1
+            print(f"  [{total_keys}/12] {key_name}")
+
+        parts.append({
+            'title': escape_latex(part_title),
+            'chapters': chapters,
+        })
+
+    context = {
+        'title': escape_latex(title),
+        'parts': parts,
+    }
+
+    print("Rendering LaTeX...")
+    tex = render_template('complete_book.tex.j2', context)
+    output_path = output or os.path.join(EXPORT_DIR, default_name)
+    print("Compiling PDF (2 passes for TOC)...")
+    return compile_pdf(tex, output_path, runs=2, timeout=120)
+
+
 def main():
     if len(sys.argv) < 2:
         print(__doc__)
@@ -250,6 +366,31 @@ def main():
         scale_arg = sys.argv[2]
         root, scale_type = tab_gen.parse_scale_arg(scale_arg)
         build_exercises(root, scale_type, pos_num, output=output)
+
+    elif cmd == 'book':
+        # Find scale type (positional arg, not a flag)
+        scale_type = 'minor-pentatonic'
+        for a in sys.argv[2:]:
+            if not a.startswith('--') and a in tab_gen.SCALE_FORMULAS:
+                scale_type = a
+                break
+            # Also accept scale args like Am-pentatonic
+            if not a.startswith('--') and '-' in a:
+                try:
+                    _, st = tab_gen.parse_scale_arg(a)
+                    if st in tab_gen.SCALE_FORMULAS:
+                        scale_type = st
+                        break
+                except SystemExit:
+                    pass
+
+        # Parse --key flag for single-key builds
+        single_key = None
+        for i, arg in enumerate(sys.argv):
+            if arg == '--key' and i + 1 < len(sys.argv):
+                single_key = sys.argv[i + 1]
+
+        build_book(scale_type, single_key=single_key, output=output)
 
     else:
         print(f"Unknown command: {cmd}")
