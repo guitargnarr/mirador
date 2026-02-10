@@ -1,0 +1,109 @@
+#!/bin/bash
+# Hybrid guitar lesson: verified tabs + LLM teaching analysis
+#
+# Pipes mathematically verified tab generator output into master_guitar_instructor
+# model to produce complete lessons with correct notation AND qualitative teaching.
+#
+# Usage:
+#   mirador-guitar-lesson Am-pentatonic                # full lesson, position 1
+#   mirador-guitar-lesson Am-pentatonic --position 3   # specific position
+#   mirador-guitar-lesson Em-blues --position 1        # any scale type
+#   mirador-guitar-lesson Bbm-pentatonic               # flat keys work
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+TAB_GEN="python3 $SCRIPT_DIR/mirador-tab-generator"
+MODEL="master_guitar_instructor"
+
+SCALE="${1:?Usage: mirador-guitar-lesson SCALE [--position N]}"
+shift
+
+# Parse --position flag (default: 1)
+POS_NUM=1
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --position) POS_NUM="$2"; shift 2 ;;
+        *) shift ;;
+    esac
+done
+
+POS_FLAG="--position $POS_NUM"
+
+echo "========================================"
+echo "  Guitar Lesson: $SCALE - Position $POS_NUM"
+echo "========================================"
+echo ""
+
+# Step 1: Generate verified tabs
+echo "[1/4] Generating verified tablature..."
+echo ""
+TABS=$($TAB_GEN scale "$SCALE" $POS_FLAG 2>&1)
+echo "$TABS"
+echo ""
+
+# Step 2: Generate exercises
+echo "----------------------------------------"
+echo "[2/4] Generating practice exercises..."
+echo ""
+LEGATO=$($TAB_GEN exercise "$SCALE" $POS_FLAG --type legato 2>&1)
+ASCENDING=$($TAB_GEN exercise "$SCALE" $POS_FLAG --type ascending 2>&1)
+SEQ3=$($TAB_GEN exercise "$SCALE" $POS_FLAG --type sequence3 2>&1)
+echo "$LEGATO"
+echo ""
+echo "$ASCENDING"
+echo ""
+echo "$SEQ3"
+echo ""
+
+# Step 3: Feed to model for teaching analysis
+echo "----------------------------------------"
+echo "[3/4] Generating technique analysis (via $MODEL)..."
+echo ""
+
+PROMPT="You are analyzing a specific guitar scale position. Here is the VERIFIED tablature - these fret numbers are mathematically correct, do not modify them.
+
+SCALE AND POSITION:
+$TABS
+
+PRACTICE EXERCISES:
+$LEGATO
+
+$ASCENDING
+
+Provide a focused teaching analysis:
+1. HAND POSITIONING: Where to place your thumb, which fingers cover which frets, wrist angle
+2. COMMON MISTAKES: What beginners get wrong in this specific position
+3. PICKING TECHNIQUE: When to use alternate picking vs legato in this position
+4. TONE TIPS: Amp settings and technique for clean scale practice"
+
+ANALYSIS=$(echo "$PROMPT" | timeout 120 ollama run "$MODEL" 2>/dev/null) || ANALYSIS="[Model timed out - try again or check if $MODEL is installed]"
+echo "$ANALYSIS"
+echo ""
+
+# Step 4: Practice plan
+echo "----------------------------------------"
+echo "[4/4] Generating practice plan (via $MODEL)..."
+echo ""
+
+PLAN_PROMPT="Create a 2-week daily practice plan for mastering this scale position:
+
+$TABS
+
+Requirements:
+- Start at 60 BPM, target 120 BPM by week 2
+- Include specific daily tempo targets
+- Alternate between legato and picked exercises
+- Keep each day's practice to 15-20 minutes
+- Include a warmup and cooldown
+
+Be specific with BPM targets per day. Use a numbered list format."
+
+PLAN=$(echo "$PLAN_PROMPT" | timeout 120 ollama run "$MODEL" 2>/dev/null) || PLAN="[Model timed out - try again or check if $MODEL is installed]"
+echo "$PLAN"
+echo ""
+echo "========================================"
+echo "  Lesson complete."
+echo "  Tabs: verified (Python math)"
+echo "  Teaching: $MODEL (qwen2.5-coder:7b)"
+echo "========================================"

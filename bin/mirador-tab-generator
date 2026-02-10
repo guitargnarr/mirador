@@ -276,49 +276,154 @@ def render_tab_compact(pos_data, root='C'):
     return render_tab_sequential(pos_data, root)
 
 
-def generate_legato_exercise(pos_data, bars=4):
-    """Generate a legato exercise (hammer-ons/pull-offs) for a position."""
-    output = []
-    output.append(f"Legato Exercise - Position {pos_data['position']}")
-    output.append("h = hammer-on, p = pull-off")
+def flatten_position(pos_data):
+    """Get all notes in ascending playing order as (string_idx, fret) tuples."""
+    notes = []
+    for s in range(6):
+        for n in pos_data['strings'][s]:
+            notes.append((s, n['fret']))
+    return notes
 
-    # Build ascending then descending events
-    asc_events = []  # (string_idx, text)
+
+def render_exercise_tab(events, label_prefix=""):
+    """Render a list of (string_idx, fret_text) events as sequential tab.
+
+    fret_text can be a plain number string or include technique marks like 'D5' or '>8'.
+    """
+    if not events:
+        return ""
+    lines = {s: [] for s in range(6)}
+    for (active_s, text) in events:
+        tw = max(len(str(text)), 2)
+        for s in range(6):
+            if s == active_s:
+                lines[s].append(str(text).rjust(tw))
+            elif active_s == -1:
+                # Bar line
+                lines[s].append(str(text).center(tw))
+            else:
+                lines[s].append('-' * tw)
+
+    output = []
+    for s in reversed(range(6)):
+        label = TUNING_LABELS[s]
+        content = '--'.join(lines[s])
+        output.append(f"  {label}|--{content}--|")
+    return '\n'.join(output)
+
+
+def exercise_ascending(pos_data):
+    """Straight ascending run through all notes in position."""
+    flat = flatten_position(pos_data)
+    return "Ascending Run", flat
+
+
+def exercise_descending(pos_data):
+    """Descending run from high e back to low E."""
+    flat = flatten_position(pos_data)
+    return "Descending Run", list(reversed(flat))
+
+
+def exercise_legato(pos_data):
+    """Hammer-on ascending, pull-off descending."""
+    asc = []
     for s in range(6):
         notes = pos_data['strings'][s]
         if len(notes) >= 2:
-            asc_events.append((s, f"{notes[0]['fret']}h{notes[1]['fret']}"))
-        elif len(notes) == 1:
-            asc_events.append((s, str(notes[0]['fret'])))
-
-    desc_events = []
+            asc.append((s, f"{notes[0]['fret']}h{notes[1]['fret']}"))
+        elif notes:
+            asc.append((s, str(notes[0]['fret'])))
+    desc = []
     for s in reversed(range(6)):
         notes = pos_data['strings'][s]
         if len(notes) >= 2:
-            desc_events.append((s, f"{notes[1]['fret']}p{notes[0]['fret']}"))
-        elif len(notes) == 1:
-            desc_events.append((s, str(notes[0]['fret'])))
+            desc.append((s, f"{notes[1]['fret']}p{notes[0]['fret']}"))
+        elif notes:
+            desc.append((s, str(notes[0]['fret'])))
+    events = asc + [(-1, '|')] + desc
+    return "Legato (h=hammer-on, p=pull-off)", events
 
-    all_events = asc_events + [(-1, '|')] + desc_events
-    col_width = max(len(ev[1]) for ev in all_events)
 
-    lines = {s: [] for s in range(6)}
-    for (active_s, text) in all_events:
-        for s in range(6):
-            if s == active_s:
-                lines[s].append(text.center(col_width))
-            elif active_s == -1:
-                lines[s].append('|'.center(col_width))
-            else:
-                lines[s].append('-' * col_width)
+def exercise_sequence3(pos_data):
+    """Sequence in groups of 3: play 3 notes, step back 1, repeat."""
+    flat = flatten_position(pos_data)
+    events = []
+    i = 0
+    while i + 2 < len(flat):
+        events.extend(flat[i:i + 3])
+        i += 1
+    if not events:
+        events = flat
+    return "Sequence in 3s", events
 
-    output_lines = []
-    for s in reversed(range(6)):
-        label = TUNING_LABELS[s]
-        content = '-'.join(lines[s])
-        output_lines.append(f"  {label}|--{content}--|")
 
-    output.append('\n'.join(output_lines))
+def exercise_sequence4(pos_data):
+    """Sequence in groups of 4: play 4 notes, step back 2, repeat."""
+    flat = flatten_position(pos_data)
+    events = []
+    i = 0
+    while i + 3 < len(flat):
+        events.extend(flat[i:i + 4])
+        i += 2
+    if not events:
+        events = flat
+    return "Sequence in 4s", events
+
+
+def exercise_string_skip(pos_data):
+    """String skipping: alternate low and high strings (E-G, A-B, D-e)."""
+    pairs = [(0, 3), (1, 4), (2, 5)]  # E-G, A-B, D-e
+    events = []
+    for lo, hi in pairs:
+        for n in pos_data['strings'][lo]:
+            events.append((lo, n['fret']))
+        for n in pos_data['strings'][hi]:
+            events.append((hi, n['fret']))
+    return "String Skipping (E-G, A-B, D-e)", events
+
+
+def exercise_alternate_picking(pos_data):
+    """Ascending run with down/up picking marks."""
+    flat = flatten_position(pos_data)
+    events = []
+    for i, (s, fret) in enumerate(flat):
+        pick = 'D' if i % 2 == 0 else 'U'
+        events.append((s, f"{pick}{fret}"))
+    return "Alternate Picking (D=down, U=up)", events
+
+
+def exercise_triplet(pos_data):
+    """Triplet grouping: accent every 3rd note with >."""
+    flat = flatten_position(pos_data)
+    events = []
+    for i, (s, fret) in enumerate(flat):
+        if i % 3 == 0:
+            events.append((s, f">{fret}"))
+        else:
+            events.append((s, str(fret)))
+    return "Triplet Grouping (> = accent)", events
+
+
+EXERCISE_TYPES = {
+    'ascending': exercise_ascending,
+    'descending': exercise_descending,
+    'legato': exercise_legato,
+    'sequence3': exercise_sequence3,
+    'sequence4': exercise_sequence4,
+    'string-skip': exercise_string_skip,
+    'alternate': exercise_alternate_picking,
+    'triplet': exercise_triplet,
+}
+
+
+def generate_exercise(pos_data, exercise_type='legato'):
+    """Generate a named exercise for a position."""
+    if exercise_type not in EXERCISE_TYPES:
+        return f"Unknown exercise type: {exercise_type}\nAvailable: {', '.join(EXERCISE_TYPES.keys())}"
+    gen_fn = EXERCISE_TYPES[exercise_type]
+    name, events = gen_fn(pos_data)
+    output = [f"{name} - Position {pos_data['position']}"]
+    output.append(render_exercise_tab(events))
     return '\n'.join(output)
 
 
@@ -497,21 +602,31 @@ def main():
     elif cmd == 'exercise':
         if len(sys.argv) < 3:
             print("Usage: mirador-tab-generator exercise Am-pentatonic --position 1 --type legato")
+            print(f"Types: {', '.join(EXERCISE_TYPES.keys())}, all")
             sys.exit(1)
 
         root, scale_type = parse_scale_arg(sys.argv[2])
         positions = get_scale_positions(root, scale_type)
 
         pos_num = 1
+        ex_type = 'legato'
         for i, arg in enumerate(sys.argv):
             if arg == '--position' and i + 1 < len(sys.argv):
                 pos_num = int(sys.argv[i + 1])
+            if arg == '--type' and i + 1 < len(sys.argv):
+                ex_type = sys.argv[i + 1]
 
         dr = display_root(root)
         if 1 <= pos_num <= len(positions):
-            print(f"\n{dr} {scale_type.replace('-', ' ').title()} - Exercise")
+            pos = positions[pos_num - 1]
+            print(f"\n{dr} {scale_type.replace('-', ' ').title()} - Position {pos_num}")
             print()
-            print(generate_legato_exercise(positions[pos_num - 1]))
+            if ex_type == 'all':
+                for etype in EXERCISE_TYPES:
+                    print(generate_exercise(pos, etype))
+                    print()
+            else:
+                print(generate_exercise(pos, ex_type))
         else:
             print(f"Position {pos_num} not found")
 
