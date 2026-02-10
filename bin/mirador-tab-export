@@ -239,6 +239,33 @@ def build_book(scale_type, single_key=None, output=None):
         title = dr_label
         default_name = f"{scale_type}_complete_book.pdf"
 
+    # Descriptions for part divider pages
+    part_descriptions = {
+        "Foundation Keys": "The keys every guitarist learns first. Open chord shapes are abundant, fret positions sit in the comfortable 0--8 range, and most popular songs live here. Master these six keys and you can play over the vast majority of rock, blues, and pop music.",
+        "Sharp and Flat Keys": "Keys that require barre chords and less intuitive positions. These keys unlock the full fretboard and prepare you for any musical situation -- jazz standards, horn-section keys, and modulating progressions.",
+    }
+
+    # Exercise type descriptions for educational context
+    exercise_descriptions = {
+        'ascending': "Build fretboard familiarity by running the full position from low to high.",
+        'descending': "Reverse the pattern to develop equal fluency in both directions.",
+        'legato': "Develop hammer-on and pull-off technique for smooth, connected phrasing.",
+        'sequence3': "Train your ear and fingers to break out of linear scale runs into musical patterns.",
+        'sequence4': "Expand sequencing to four-note groups for more complex melodic vocabulary.",
+        'string-skip': "Build accuracy jumping across wide intervals -- essential for modern lead playing.",
+        'alternate': "Develop consistent down-up pick attack and rhythmic precision at any tempo.",
+        'triplet': "Internalize triplet grouping to add rhythmic variety and swing feel to your lines.",
+    }
+
+    # Scale description for cover page
+    scale_descriptions = {
+        'minor-pentatonic': "The minor pentatonic scale is the single most important scale in rock, blues, and popular music. Five notes, five positions, infinite possibilities. This resource provides every position in every key with mathematically verified tablature, companion chords to play over, and eight exercise types designed to build real fretboard fluency -- not just memorization.",
+        'blues': "The blues scale adds one chromatic passing tone to the minor pentatonic, creating the tension and release that defines the blues. This resource covers every position in every key with verified tablature and targeted exercises.",
+        'major-pentatonic': "The major pentatonic scale is the bright, uplifting counterpart to the minor pentatonic. Essential for country, pop, and major-key soloing. Every position, every key, verified and exercise-ready.",
+    }
+    scale_desc = scale_descriptions.get(scale_type,
+        f"Complete {dr_label} reference with verified tablature across all 12 keys, 5 positions per key, companion chords, and 8 exercise types per position.")
+
     parts = []
     total_keys = 0
     for part_title, keys in part_groups:
@@ -287,6 +314,7 @@ def build_book(scale_type, single_key=None, output=None):
                     ex_list.append({
                         'name': escape_latex(name),
                         'tab': tab_text,
+                        'description': escape_latex(exercise_descriptions.get(etype, '')),
                     })
                 exercise_groups.append({
                     'number': pos['position'],
@@ -305,8 +333,11 @@ def build_book(scale_type, single_key=None, output=None):
             total_keys += 1
             print(f"  [{total_keys}/12] {key_name}")
 
+        key_names = [escape_latex(f"{tab_gen.display_root(r)} {dr_label}") for r in keys]
         parts.append({
             'title': escape_latex(part_title),
+            'description': escape_latex(part_descriptions.get(part_title, '')),
+            'key_list': ', '.join(key_names),
             'chapters': chapters,
         })
 
@@ -322,6 +353,7 @@ def build_book(scale_type, single_key=None, output=None):
 
     context = {
         'title': escape_latex(title),
+        'scale_description': escape_latex(scale_desc),
         'parts': parts,
         'num_keys': num_keys,
         'num_positions': num_positions,
@@ -329,6 +361,7 @@ def build_book(scale_type, single_key=None, output=None):
         'num_exercise_types': num_exercise_types,
         'total_exercises': total_exercises,
         'total_tabs': total_tabs,
+        'exercise_descriptions': {k: escape_latex(v) for k, v in exercise_descriptions.items()},
     }
 
     print("Rendering LaTeX...")
