@@ -7,6 +7,7 @@ paired with LLM-generated theory explanations and exercises.
 Usage:
     mirador-tab-generator scale Am-pentatonic [--position 1-5|all]
     mirador-tab-generator scale Em-pentatonic --position 3
+    mirador-tab-generator all-keys [minor-pentatonic|blues|major-pentatonic]
     mirador-tab-generator exercise Am-pentatonic --position 1 --type legato
     mirador-tab-generator chord Am7
     mirador-tab-generator fretboard A  # show all A notes on fretboard
@@ -14,8 +15,20 @@ Usage:
 
 import sys
 
-# Complete chromatic note sequence
+# Complete chromatic note sequence (sharps internally)
 CHROMATIC = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
+# Enharmonic equivalents for display
+ENHARMONIC = {
+    'C#': 'Db', 'D#': 'Eb', 'F#': 'Gb', 'G#': 'Ab', 'A#': 'Bb',
+}
+
+# Keys whose minor pentatonic scales use flats (Bb not A#, Eb not D#, etc.)
+# G minor = G Bb C D F, C minor = C Eb F G Bb, F minor = F Ab Bb C Eb, etc.
+FLAT_KEYS = {'C', 'F', 'G', 'Bb', 'Eb', 'Ab', 'Db', 'Gb',
+             'D#', 'G#', 'A#', 'C#'}  # internal sharp names for flat keys
+# Keys whose minor pentatonic scales use sharps: Bm (F#), F#m (C#), C#m (G#)
+SHARP_KEYS = {'D', 'A', 'E', 'B', 'F#'}
 
 # Standard tuning open string notes
 TUNING = ['E', 'A', 'D', 'G', 'B', 'E']  # low to high
@@ -37,6 +50,11 @@ SCALE_DEGREE_NAMES = {
     'minor-pentatonic': ['1', 'b3', '4', '5', 'b7'],
     'major-pentatonic': ['1', '2', '3', '5', '6'],
     'blues':            ['1', 'b3', '4', 'b5', '5', 'b7'],
+    'natural-minor':    ['1', '2', 'b3', '4', '5', 'b6', 'b7'],
+    'natural-major':    ['1', '2', '3', '4', '5', '6', '7'],
+    'dorian':           ['1', '2', 'b3', '4', '5', '6', 'b7'],
+    'mixolydian':       ['1', '2', '3', '4', '5', '6', 'b7'],
+    'harmonic-minor':   ['1', '2', 'b3', '4', '5', 'b6', '7'],
 }
 
 # Chord formulas (intervals in semitones from root)
@@ -52,6 +70,29 @@ CHORD_FORMULAS = {
     'sus4':   [0, 5, 7],
     'power':  [0, 7],
 }
+
+# All 12 roots in conventional order for all-keys output
+ALL_ROOTS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
+
+def display_note(note, root='C'):
+    """Return the display name for a note, using flats or sharps based on key context."""
+    if '#' not in note:
+        return note
+    # Use flats for flat keys, sharps for sharp keys
+    if root in FLAT_KEYS or root in ENHARMONIC.values():
+        return ENHARMONIC.get(note, note)
+    return note
+
+
+def display_root(root):
+    """Return the conventional display name for a root note."""
+    # Map internal sharp names to flat equivalents where conventional
+    # C# -> Db (Db minor is more readable than C# minor with all those flats)
+    flat_display = {
+        'C#': 'Db', 'D#': 'Eb', 'G#': 'Ab', 'A#': 'Bb',
+    }
+    return flat_display.get(root, root)
 
 
 def note_at_fret(string_idx, fret):
@@ -74,7 +115,7 @@ def fret_for_note(string_idx, note, min_fret=0, max_fret=24):
 
 
 def get_scale_notes(root, scale_type):
-    """Return list of note names for a scale."""
+    """Return list of note names for a scale (internal sharp names)."""
     formula = SCALE_FORMULAS[scale_type]
     root_idx = CHROMATIC.index(root)
     return [CHROMATIC[(root_idx + interval) % 12] for interval in formula]
@@ -87,19 +128,14 @@ def get_pentatonic_positions(root, scale_type='minor-pentatonic'):
 
     # Position 1 starts from the root on the low E string
     root_frets_e = fret_for_note(0, root, 0, 15)
-    # Use the lowest root fret (open position is valid)
     start_fret = root_frets_e[0]
 
-    # Build each position by finding 2 scale notes per string
-    # within a 4-5 fret span
     for pos_num in range(5):
         pos_data = {'position': pos_num + 1, 'strings': []}
 
         if pos_num == 0:
             anchor = start_fret
         else:
-            # Each position starts from the next scale degree on the low E
-            # Find the next scale note on E string after previous position's start
             prev_anchor = positions[pos_num - 1]['strings'][0][0]['fret']
             candidates = []
             for note in notes:
@@ -108,24 +144,20 @@ def get_pentatonic_positions(root, scale_type='minor-pentatonic'):
             candidates.sort()
             anchor = candidates[0] if candidates else prev_anchor + 2
 
-        # For each string, find the 2 scale notes closest to the anchor
         min_fret = 24
         max_fret = 0
-        for s in range(6):  # low E to high e
+        for s in range(6):
             string_notes = []
             for note in notes:
                 for f in fret_for_note(s, note, max(0, anchor - 1), anchor + 5):
                     string_notes.append({'fret': f, 'note': note})
-            # Sort by fret and take the 2 that form a clean box pattern
             string_notes.sort(key=lambda x: x['fret'])
-            # Deduplicate
             seen = set()
             unique = []
             for sn in string_notes:
                 if sn['fret'] not in seen:
                     seen.add(sn['fret'])
                     unique.append(sn)
-            # Take first 2
             picked = unique[:2]
             pos_data['strings'].append(picked)
             for p in picked:
@@ -138,63 +170,49 @@ def get_pentatonic_positions(root, scale_type='minor-pentatonic'):
     return positions
 
 
-def render_tab(position_data, scale_notes=None, degree_names=None):
-    """Render a single position as ASCII tab."""
-    lines = []
-    # Build from high e (index 5) to low E (index 0) for display
-    tab_width = 30
-    for s in reversed(range(6)):
-        label = TUNING_LABELS[s]
-        notes_on_string = position_data['strings'][s]
-        # Build the tab line
-        tab_content = '-' * tab_width
-        # Place fret numbers
-        note_strs = []
-        for n in notes_on_string:
-            fret_str = str(n['fret'])
-            note_strs.append(f"{fret_str}({n['note']})")
-        tab_line = '--' + '--'.join(str(n['fret']) for n in notes_on_string) + '--'
-        tab_line = tab_line.ljust(20, '-')
-        lines.append(f"{label}|{tab_line}|")
-
-    return '\n'.join(lines)
-
-
-def render_position_full(pos_data, scale_notes, scale_type):
+def render_position_full(pos_data, scale_notes, scale_type, root='C'):
     """Render a complete position with tab + note info."""
     fmin, fmax = pos_data['fret_range']
     output = []
     output.append(f"Position {pos_data['position']} (frets {fmin}-{fmax})")
     output.append("```")
 
-    # Render tab high to low
     for s in reversed(range(6)):
         label = TUNING_LABELS[s]
         notes = pos_data['strings'][s]
-        fret_strs = []
-        for n in notes:
-            fret_strs.append(str(n['fret']))
-        # Pad for alignment
+        fret_strs = [str(n['fret']) for n in notes]
         content = '--'.join(f.rjust(2) for f in fret_strs)
         output.append(f"{label}|--{content}--|")
 
     output.append("```")
 
-    # Note details
     output.append("Notes per string:")
     for s in range(6):
         label = TUNING_LABELS[s]
         notes = pos_data['strings'][s]
-        note_info = ', '.join(f"fret {n['fret']}={n['note']}" for n in notes)
+        note_info = ', '.join(
+            f"fret {n['fret']}={display_note(n['note'], root)}" for n in notes
+        )
         output.append(f"  {label}: {note_info}")
 
-    # Scale degrees
     degree_names = SCALE_DEGREE_NAMES.get(scale_type, [])
     if degree_names:
-        output.append(f"Scale degrees: " + ', '.join(
-            f"{n}({d})" for n, d in zip(scale_notes, degree_names)
+        output.append("Scale degrees: " + ', '.join(
+            f"{display_note(n, root)}({d})" for n, d in zip(scale_notes, degree_names)
         ))
 
+    return '\n'.join(output)
+
+
+def render_position_compact(pos_data, root='C'):
+    """Render a compact position with just the tab."""
+    output = []
+    for s in reversed(range(6)):
+        label = TUNING_LABELS[s]
+        notes = pos_data['strings'][s]
+        fret_strs = [str(n['fret']) for n in notes]
+        content = '--'.join(f.rjust(2) for f in fret_strs)
+        output.append(f"{label}|--{content}--|")
     return '\n'.join(output)
 
 
@@ -205,33 +223,6 @@ def generate_legato_exercise(pos_data, bars=4):
     output.append("h = hammer-on, p = pull-off")
     output.append("```")
 
-    # Ascending: low E to high e with hammer-ons
-    # Descending: high e to low E with pull-offs
-    asc_lines = {s: '' for s in range(6)}
-    desc_lines = {s: '' for s in range(6)}
-
-    for s in range(6):
-        notes = pos_data['strings'][s]
-        if len(notes) >= 2:
-            low, high = notes[0]['fret'], notes[1]['fret']
-            asc_lines[s] = f"{low}h{high}"
-            desc_lines[s] = f"{high}p{low}"
-        elif len(notes) == 1:
-            asc_lines[s] = str(notes[0]['fret'])
-            desc_lines[s] = str(notes[0]['fret'])
-
-    # Bar 1-2: ascending
-    for bar in range(min(2, bars)):
-        for s in reversed(range(6)):
-            label = TUNING_LABELS[s]
-            if bar == 0:
-                # Only current string plays
-                pass
-        # Simpler approach: one bar ascending, one descending, repeat
-        pass
-
-    # Render as ascending run then descending
-    # Bar 1: ascending low E -> high e
     tab = {s: [] for s in range(6)}
     # Ascending
     for active_s in range(6):
@@ -246,7 +237,6 @@ def generate_legato_exercise(pos_data, bars=4):
                 width = len(tab[active_s][-1]) if tab[active_s] else 3
                 tab[s].append('-' * width)
 
-    # Add bar line
     for s in range(6):
         tab[s].append('|')
 
@@ -263,7 +253,6 @@ def generate_legato_exercise(pos_data, bars=4):
                 width = len(tab[active_s][-1]) if tab[active_s] else 3
                 tab[s].append('-' * width)
 
-    # Render
     for s in reversed(range(6)):
         label = TUNING_LABELS[s]
         content = '-'.join(tab[s])
@@ -276,10 +265,10 @@ def generate_legato_exercise(pos_data, bars=4):
 def show_note_on_fretboard(note, max_fret=15):
     """Show all occurrences of a note on the fretboard."""
     output = []
-    output.append(f"All {note} notes on fretboard (frets 0-{max_fret}):")
+    dn = display_note(note)
+    output.append(f"All {dn} notes on fretboard (frets 0-{max_fret}):")
     output.append("")
 
-    # Header
     header = "    " + "  ".join(f"{f:>2}" for f in range(max_fret + 1))
     output.append(header)
     output.append("    " + "---" * (max_fret + 1))
@@ -290,7 +279,7 @@ def show_note_on_fretboard(note, max_fret=15):
         line = f"{label} | "
         for f in range(max_fret + 1):
             if f in frets:
-                line += f" {note:>2}"
+                line += f" {dn:>2}"
             else:
                 line += "  ."
         output.append(line)
@@ -298,28 +287,97 @@ def show_note_on_fretboard(note, max_fret=15):
     return '\n'.join(output)
 
 
+def generate_all_keys(scale_type='minor-pentatonic'):
+    """Generate all 5 positions for all 12 keys."""
+    output = []
+    output.append(f"{'=' * 70}")
+    output.append(f"  ALL 12 KEYS - {scale_type.replace('-', ' ').title()}")
+    output.append(f"  5 positions per key, 60 total patterns")
+    output.append(f"{'=' * 70}")
+
+    degree_names = SCALE_DEGREE_NAMES.get(scale_type, [])
+
+    for root in ALL_ROOTS:
+        dr = display_root(root)
+        notes = get_scale_notes(root, scale_type)
+        display_notes = [display_note(n, root) for n in notes]
+
+        output.append("")
+        output.append(f"{'─' * 70}")
+        if scale_type == 'minor-pentatonic':
+            output.append(f"  {dr} Minor Pentatonic")
+        elif scale_type == 'major-pentatonic':
+            output.append(f"  {dr} Major Pentatonic")
+        elif scale_type == 'blues':
+            output.append(f"  {dr} Blues")
+        else:
+            output.append(f"  {dr} {scale_type.replace('-', ' ').title()}")
+
+        output.append(f"  Notes: {', '.join(display_notes)}")
+        if degree_names:
+            output.append(f"  Degrees: {', '.join(degree_names)}")
+        output.append(f"{'─' * 70}")
+
+        positions = get_pentatonic_positions(root, scale_type)
+        for pos in positions:
+            fmin, fmax = pos['fret_range']
+            output.append(f"\n  Position {pos['position']} (frets {fmin}-{fmax})")
+
+            # Tab
+            for s in reversed(range(6)):
+                label = TUNING_LABELS[s]
+                pnotes = pos['strings'][s]
+                fret_strs = [str(n['fret']) for n in pnotes]
+                content = '--'.join(f.rjust(2) for f in fret_strs)
+                output.append(f"  {label}|--{content}--|")
+
+            # Note details on one line
+            parts = []
+            for s in range(6):
+                label = TUNING_LABELS[s]
+                pnotes = pos['strings'][s]
+                for n in pnotes:
+                    parts.append(f"{label}:{n['fret']}={display_note(n['note'], root)}")
+            output.append(f"  {' | '.join(parts)}")
+
+    output.append("")
+    output.append(f"{'=' * 70}")
+    output.append(f"  Generated {len(ALL_ROOTS)} keys x 5 positions = 60 patterns")
+    output.append(f"{'=' * 70}")
+
+    return '\n'.join(output)
+
+
 def parse_scale_arg(arg):
     """Parse 'Am-pentatonic' into ('A', 'minor-pentatonic')."""
-    # Handle formats: Am-pentatonic, A-minor-pentatonic, Em-blues, etc.
     arg = arg.strip()
 
-    # Check for shorthand: Am, Em, Gm etc.
+    # Handle flat input: Bbm, Ebm, etc.
+    reverse_enharmonic = {v: k for k, v in ENHARMONIC.items()}
+
+    # Check for shorthand: Am, Em, Gm, Bbm, Ebm etc.
     for i, c in enumerate(arg):
         if c == 'm' and (i + 1 >= len(arg) or arg[i + 1] == '-'):
             root = arg[:i]
+            # Convert flat notation to internal sharp
+            root = reverse_enharmonic.get(root, root)
+            if root not in CHROMATIC:
+                print(f"Unknown root: {arg[:i]}. Use: {', '.join(CHROMATIC)}")
+                sys.exit(1)
             rest = arg[i + 1:].lstrip('-')
             if not rest:
-                rest = 'minor-pentatonic'  # default
+                rest = 'minor-pentatonic'
             elif rest == 'pentatonic':
                 rest = 'minor-pentatonic'
             elif rest == 'blues':
                 rest = 'blues'
             return root, rest
 
-    # Check for major shorthand
+    # Check for major shorthand or other scales
     if '-' in arg:
         parts = arg.split('-', 1)
         root = parts[0]
+        root = reverse_enharmonic.get(root, root)
         scale = parts[1]
         if scale == 'pentatonic':
             scale = 'major-pentatonic'
@@ -351,16 +409,17 @@ def main():
             sys.exit(1)
 
         notes = get_scale_notes(root, scale_type)
+        display_notes = [display_note(n, root) for n in notes]
         degree_names = SCALE_DEGREE_NAMES.get(scale_type, [])
+        dr = display_root(root)
 
-        # Parse position flag
         position = 'all'
         for i, arg in enumerate(sys.argv):
             if arg == '--position' and i + 1 < len(sys.argv):
                 position = sys.argv[i + 1]
 
-        print(f"\n{root} {scale_type.replace('-', ' ').title()}")
-        print(f"Notes: {', '.join(notes)}")
+        print(f"\n{dr} {scale_type.replace('-', ' ').title()}")
+        print(f"Notes: {', '.join(display_notes)}")
         if degree_names:
             print(f"Degrees: {', '.join(degree_names)}")
         print()
@@ -369,14 +428,24 @@ def main():
 
         if position == 'all':
             for pos in positions:
-                print(render_position_full(pos, notes, scale_type))
+                print(render_position_full(pos, notes, scale_type, root))
                 print()
         else:
             pos_num = int(position)
             if 1 <= pos_num <= len(positions):
-                print(render_position_full(positions[pos_num - 1], notes, scale_type))
+                print(render_position_full(positions[pos_num - 1], notes, scale_type, root))
             else:
                 print(f"Position {pos_num} not found (1-{len(positions)})")
+
+    elif cmd == 'all-keys':
+        scale_type = 'minor-pentatonic'
+        if len(sys.argv) >= 3:
+            scale_type = sys.argv[2]
+        if scale_type not in SCALE_FORMULAS:
+            print(f"Unknown scale type: {scale_type}")
+            print(f"Available: {', '.join(SCALE_FORMULAS.keys())}")
+            sys.exit(1)
+        print(generate_all_keys(scale_type))
 
     elif cmd == 'exercise':
         if len(sys.argv) < 3:
@@ -384,7 +453,6 @@ def main():
             sys.exit(1)
 
         root, scale_type = parse_scale_arg(sys.argv[2])
-        notes = get_scale_notes(root, scale_type)
         positions = get_pentatonic_positions(root, scale_type)
 
         pos_num = 1
@@ -392,8 +460,9 @@ def main():
             if arg == '--position' and i + 1 < len(sys.argv):
                 pos_num = int(sys.argv[i + 1])
 
+        dr = display_root(root)
         if 1 <= pos_num <= len(positions):
-            print(f"\n{root} {scale_type.replace('-', ' ').title()} - Exercise")
+            print(f"\n{dr} {scale_type.replace('-', ' ').title()} - Exercise")
             print()
             print(generate_legato_exercise(positions[pos_num - 1]))
         else:
@@ -404,8 +473,10 @@ def main():
             print("Usage: mirador-tab-generator fretboard A")
             sys.exit(1)
         note = sys.argv[2]
+        reverse_enharmonic = {v: k for k, v in ENHARMONIC.items()}
+        note = reverse_enharmonic.get(note, note)
         if note not in CHROMATIC:
-            print(f"Unknown note: {note}. Use: {', '.join(CHROMATIC)}")
+            print(f"Unknown note: {sys.argv[2]}. Use: {', '.join(CHROMATIC)}")
             sys.exit(1)
         print()
         print(show_note_on_fretboard(note))
