@@ -266,6 +266,22 @@ def build_book(scale_type, single_key=None, output=None):
     scale_desc = scale_descriptions.get(scale_type,
         f"Complete {dr_label} reference with verified tablature across all 12 keys, 5 positions per key, companion chords, and 8 exercise types per position.")
 
+    # 12 distinct chapter color palettes (hex pairs: banner bg, accent)
+    key_colors = {
+        'A':  ('chA',  '8b2500', 'e8592a'),   # deep red / vermillion
+        'E':  ('chE',  '1a4d2e', '2ea866'),   # forest / emerald
+        'D':  ('chD',  '1a3a5c', '3a8fd4'),   # navy / sky blue
+        'G':  ('chG',  '5c1a5c', 'b44ec7'),   # plum / orchid
+        'C':  ('chC',  '6b4400', 'c8842e'),   # brown / amber
+        'B':  ('chB',  '004d4d', '1ab5a0'),   # teal dark / teal
+        'F#': ('chFs', '4a1942', 'a0368c'),   # wine / magenta
+        'A#': ('chAs', '3d1a00', 'd46a2a'),   # burnt sienna / tangerine
+        'D#': ('chDs', '002b4d', '2878b5'),   # deep ocean / cerulean
+        'G#': ('chGs', '3d3d00', 'a0a028'),   # olive dark / chartreuse
+        'C#': ('chCs', '4d0026', 'c73860'),   # maroon / rose
+        'F':  ('chF',  '003333', '28a0a0'),   # dark cyan / aqua
+    }
+
     parts = []
     total_keys = 0
     for part_title, keys in part_groups:
@@ -321,6 +337,7 @@ def build_book(scale_type, single_key=None, output=None):
                     'exercises': ex_list,
                 })
 
+            color_name, _, _ = key_colors.get(root, ('chA', '8b2500', 'e8592a'))
             chapters.append({
                 'title': escape_latex(key_name),
                 'key_name': escape_latex(key_name),
@@ -329,16 +346,28 @@ def build_book(scale_type, single_key=None, output=None):
                 'chords_tab': chords_tab,
                 'progression': escape_latex(progression),
                 'exercise_groups': exercise_groups,
+                'color': color_name,
             })
             total_keys += 1
             print(f"  [{total_keys}/12] {key_name}")
 
         key_names = [escape_latex(f"{tab_gen.display_root(r)} {dr_label}") for r in keys]
+        # Part color palettes (bg dark, blob mid, accent, accent light)
+        # Blob colors must be very close to bg for subtle depth (like cover page)
+        part_color_map = {
+            "Foundation Keys":    ('partFbg', '0d0b08', 'partFblob', '1a1610', 'partFacc', 'c8842e', 'partFlit', 'e8c47c'),
+            "Sharp and Flat Keys": ('partSbg', '080b0d', 'partSblob', '10161a', 'partSacc', '5a8aaa', 'partSlit', '8ab8d8'),
+        }
+        pc = part_color_map.get(part_title, part_color_map["Foundation Keys"])
         parts.append({
             'title': escape_latex(part_title),
             'description': escape_latex(part_descriptions.get(part_title, '')),
             'key_list': ', '.join(key_names),
             'chapters': chapters,
+            'bg_name': pc[0], 'bg_hex': pc[1],
+            'blob_name': pc[2], 'blob_hex': pc[3],
+            'acc_name': pc[4], 'acc_hex': pc[5],
+            'lit_name': pc[6], 'lit_hex': pc[7],
         })
 
     # Compute stats for cover page
@@ -351,10 +380,16 @@ def build_book(scale_type, single_key=None, output=None):
     total_exercises = num_keys * num_positions * num_exercise_types
     total_tabs = num_keys * (num_positions + num_chords + num_positions * num_exercise_types)
 
+    # Build color definitions list for LaTeX preamble
+    color_defs = []
+    for root_key, (cname, bg_hex, acc_hex) in key_colors.items():
+        color_defs.append({'name': cname, 'bg': bg_hex, 'accent': acc_hex})
+
     context = {
         'title': escape_latex(title),
         'scale_description': escape_latex(scale_desc),
         'parts': parts,
+        'color_defs': color_defs,
         'num_keys': num_keys,
         'num_positions': num_positions,
         'num_chords': num_chords,

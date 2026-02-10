@@ -19,10 +19,11 @@
 \definecolor{dimgold}{HTML}{8a7040}
 \definecolor{softgray}{HTML}{e8e8e8}
 \definecolor{medgray}{HTML}{888888}
-% Accent colors for interior
-\definecolor{deepindigo}{HTML}{1a1a2e}
-\definecolor{electricblue}{HTML}{0f7fff}
-\definecolor{gold}{HTML}{d4a017}
+% ── Per-key chapter color palettes ───────────────────────────────
+<% for cd in color_defs %>
+\definecolor{<< cd.name >>bg}{HTML}{<< cd.bg >>}
+\definecolor{<< cd.name >>acc}{HTML}{<< cd.accent >>}
+<% endfor %>
 
 \hypersetup{colorlinks=true,linkcolor=copper,urlcolor=copper}
 \pagestyle{plain}
@@ -101,7 +102,7 @@
   % Category label (spaced small caps)
   \node[anchor=center, text=amber, font=\footnotesize\scshape, inner sep=0pt]
     at ([yshift=0.80\paperheight]current page.south)
-    {\textls[200]{COMPLETE REFERENCE}};
+    {C\kern0.12em O\kern0.12em M\kern0.12em P\kern0.12em L\kern0.12em E\kern0.12em T\kern0.12em E\kern0.35em R\kern0.12em E\kern0.12em F\kern0.12em E\kern0.12em R\kern0.12em E\kern0.12em N\kern0.12em C\kern0.12em E};
 
   % Title
   \node[anchor=center, text=warmwhite, font=\fontsize{42}{50}\bfseries\selectfont, text width=5.5in, align=center]
@@ -151,52 +152,95 @@
 <% if part.title %>
 % ── Part Divider Page ─────────────────────────────────────────────
 \thispagestyle{empty}
+% Define part-specific colors
+\definecolor{partbg}{HTML}{<< part.bg_hex >>}
+\definecolor{partblob}{HTML}{<< part.blob_hex >>}
+\definecolor{partacc}{HTML}{<< part.acc_hex >>}
+\definecolor{partlit}{HTML}{<< part.lit_hex >>}
 \begin{tikzpicture}[remember picture, overlay]
-  % Background
-  \fill[coverblack] (current page.south west) rectangle (current page.north east);
 
-  % Layered organic shapes
-  \fill[warmchar, opacity=0.35]
-    ([xshift=0.60\paperwidth, yshift=0.60\paperheight]current page.south west)
-    circle [x radius=3in, y radius=3.4in];
-  \fill[deepchar, opacity=0.4]
-    ([xshift=0.30\paperwidth, yshift=0.45\paperheight]current page.south west)
-    circle [x radius=2.6in, y radius=3in];
+  % ── Deep background ────────────────────────────────────────────
+  \fill[partbg] (current page.south west) rectangle (current page.north east);
 
-  % Resonance rings
-  \foreach \r/\o in {1.5/0.05, 2.2/0.04, 2.9/0.03} {
-    \draw[amber, opacity=\o, line width=0.4pt]
-      ([xshift=0.50\paperwidth, yshift=0.52\paperheight]current page.south west)
+  % ── Layer 1: Large translucent organic shapes ──────────────────
+  \fill[partblob, opacity=0.45]
+    ([xshift=0.55\paperwidth, yshift=0.78\paperheight]current page.south west)
+    circle [x radius=3.8in, y radius=4.2in];
+  \fill[partblob, opacity=0.5]
+    ([xshift=0.25\paperwidth, yshift=0.55\paperheight]current page.south west)
+    circle [x radius=3.2in, y radius=3.6in];
+  \fill[partblob, opacity=0.3]
+    ([xshift=0.72\paperwidth, yshift=0.22\paperheight]current page.south west)
+    circle [x radius=2.8in, y radius=3.0in];
+  \fill[partblob, opacity=0.35]
+    ([xshift=0.08\paperwidth, yshift=0.85\paperheight]current page.south west)
+    circle [x radius=2.5in, y radius=2.8in];
+
+  % ── Layer 2: Concentric resonance rings ────────────────────────
+  \foreach \r/\o in {1.8/0.06, 2.4/0.05, 3.0/0.04, 3.6/0.035, 4.2/0.03, 4.8/0.025, 5.4/0.02} {
+    \draw[partacc, opacity=\o, line width=0.4pt]
+      ([xshift=0.42\paperwidth, yshift=0.48\paperheight]current page.south west)
       circle [radius=\r in];
   }
 
-  % Top/bottom border accents
-  \shade[left color=coverblack, right color=copper, middle color=amber]
+  % ── Layer 3: Geometric arcs ────────────────────────────────────
+  \draw[partacc, opacity=0.08, line width=0.6pt]
+    ([xshift=0.15\paperwidth, yshift=0.70\paperheight]current page.south west)
+    arc [start angle=160, end angle=20, x radius=3.5in, y radius=2in];
+  \draw[partacc, opacity=0.06, line width=0.4pt]
+    ([xshift=0.60\paperwidth, yshift=0.25\paperheight]current page.south west)
+    arc [start angle=200, end angle=340, x radius=4in, y radius=2.5in];
+  \draw[partacc, opacity=0.05, line width=0.5pt]
+    ([xshift=0.80\paperwidth, yshift=0.65\paperheight]current page.south west)
+    arc [start angle=120, end angle=240, x radius=2in, y radius=3in];
+
+  % ── Layer 4: Diamond accents ───────────────────────────────────
+  \foreach \x/\y/\o in {0.15/0.30/0.10, 0.82/0.75/0.08, 0.88/0.22/0.07, 0.08/0.72/0.09} {
+    \node[rotate=45, opacity=\o] at ([xshift=\x\paperwidth, yshift=\y\paperheight]current page.south west)
+      {\color{partacc}\tiny$\diamond$};
+  }
+
+  % ── Layer 5: Horizontal rule with glow ──────────────────────────
+  \shade[left color=partbg, right color=partacc, middle color=partacc, opacity=0.6]
+    ([xshift=1.8in, yshift=0.595\paperheight]current page.south west)
+    rectangle ([xshift=-1.8in, yshift=0.598\paperheight]current page.south east);
+
+  % ── Top border accent ──────────────────────────────────────────
+  \shade[left color=partbg, right color=partacc, middle color=partacc]
     ([yshift=-3pt]current page.north west) rectangle ([yshift=-5pt]current page.north east);
-  \shade[left color=copper, right color=coverblack, middle color=amber]
+
+  % ── Bottom border accent ───────────────────────────────────────
+  \shade[left color=partacc, right color=partbg, middle color=partacc]
     ([yshift=3pt]current page.south west) rectangle ([yshift=5pt]current page.south east);
 
-  % Part label
-  \node[anchor=center, text=amber, font=\footnotesize\scshape]
-    at ([yshift=0.72\paperheight]current page.south)
-    {\textls[200]{PART}};
+  % ── Typography ─────────────────────────────────────────────────
+
+  % Part label (spaced small caps)
+  \node[anchor=center, text=partacc, font=\footnotesize\scshape]
+    at ([yshift=0.78\paperheight]current page.south)
+    {P\kern0.15em A\kern0.15em R\kern0.15em T};
 
   % Part title
-  \node[anchor=center, text=warmwhite, font=\fontsize{30}{36}\bfseries\selectfont]
-    at ([yshift=0.65\paperheight]current page.south) {<< part.title >>};
+  \node[anchor=center, text=warmwhite, font=\fontsize{34}{40}\bfseries\selectfont, text width=5.5in, align=center]
+    at ([yshift=0.68\paperheight]current page.south) {<< part.title >>};
 
-  % Accent rule
-  \draw[amber, line width=1.2pt]
-    ([xshift=-1in, yshift=0.60\paperheight]current page.south) --
-    ([xshift=1in, yshift=0.60\paperheight]current page.south);
+  % Accent rule under title
+  \draw[partacc, line width=1.2pt]
+    ([xshift=-1.2in, yshift=0.625\paperheight]current page.south) --
+    ([xshift=1.2in, yshift=0.625\paperheight]current page.south);
 
   % Part description
   \node[anchor=center, text=warmwhite, font=\small, text width=5in, align=center, opacity=0.85]
-    at ([yshift=0.42\paperheight]current page.south) {<< part.description >>};
+    at ([yshift=0.44\paperheight]current page.south) {<< part.description >>};
 
   % Key list
-  \node[anchor=center, text=amber, font=\normalsize]
+  \node[anchor=center, text=partlit, font=\normalsize, text width=6in, align=center]
     at ([yshift=0.32\paperheight]current page.south) {<< part.key_list >>};
+
+  % Footer
+  \node[anchor=center, text=partacc, font=\scriptsize, opacity=0.4]
+    at ([yshift=0.08\paperheight]current page.south)
+    {mirador-tab-generator};
 
 \end{tikzpicture}
 \clearpage
@@ -208,9 +252,9 @@
 \thispagestyle{plain}
 \addcontentsline{toc}{chapter}{<< chapter.title >>}
 \noindent\begin{tikzpicture}[remember picture, overlay]
-  \fill[coverblack] ([yshift=2pt]current page.north west) rectangle ([yshift=-60pt]current page.north east);
-  \node[anchor=west, text=warmwhite, font=\Huge\bfseries] at ([yshift=-30pt, xshift=1in]current page.north west) {<< chapter.title >>};
-  \shade[left color=coverblack, right color=copper, middle color=amber]
+  \fill[<< chapter.color >>bg] ([yshift=2pt]current page.north west) rectangle ([yshift=-60pt]current page.north east);
+  \node[anchor=west, text=white, font=\Huge\bfseries] at ([yshift=-30pt, xshift=1in]current page.north west) {<< chapter.title >>};
+  \shade[left color=<< chapter.color >>bg, right color=<< chapter.color >>acc, middle color=<< chapter.color >>acc]
     ([yshift=-62pt, xshift=0.75in]current page.north west) rectangle ([yshift=-63.5pt, xshift=-0.75in]current page.north east);
 \end{tikzpicture}
 \vspace{50pt}
@@ -236,13 +280,13 @@
 \end{Verbatim}
 {\small Progression: \textbf{<< chapter.progression >>} }
 \vspace{8pt}
-{\color{amber}\hrule}
+{\color{<< chapter.color >>acc}\hrule}
 \vspace{8pt}
 
 \section*{Exercises}
 
 <% for pos_group in chapter.exercise_groups %>
-\subsection*{{\color{amber}Position << pos_group.number >>} Exercises}
+\subsection*{{\color{<< chapter.color >>acc}Position << pos_group.number >>} Exercises}
 
 <% for ex in pos_group.exercises %>
 \textbf{<< ex.name >>}
