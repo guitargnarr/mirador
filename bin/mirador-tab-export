@@ -1,0 +1,261 @@
+#!/usr/bin/env python3
+"""Export verified guitar tabs to PDF via Jinja2 + LaTeX.
+
+Usage:
+    mirador-tab-export reference Am-pentatonic              # 5 positions PDF
+    mirador-tab-export reference --all-keys minor-pentatonic  # 12 keys x 5 positions
+    mirador-tab-export exercises Am-pentatonic --position 1   # all 8 exercise types
+    mirador-tab-export exercises Am-pentatonic --position all  # all positions
+    mirador-tab-export reference Am-pentatonic --output /path/to/file.pdf
+"""
+
+import importlib.util
+import os
+import subprocess
+import sys
+import tempfile
+
+# Import tab generator (no .py extension, use SourceFileLoader)
+import importlib.machinery
+_tab_gen_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mirador-tab-generator')
+_loader = importlib.machinery.SourceFileLoader('mirador_tab_generator', _tab_gen_path)
+_spec = importlib.util.spec_from_loader('mirador_tab_generator', _loader)
+tab_gen = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(tab_gen)
+
+from jinja2 import Environment, FileSystemLoader
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATE_DIR = os.path.join(SCRIPT_DIR, '..', 'templates')
+EXPORT_DIR = os.path.expanduser('~/.mirador/exports')
+PDFLATEX = '/Library/TeX/texbin/pdflatex'
+
+# Max note columns per tab line before wrapping to a new line.
+# At \small monospace: landscape ~140 chars usable, portrait ~105 chars usable.
+# 24 cols = ~103 chars (portrait), 32 cols = ~135 chars (landscape).
+MAX_COLS_LANDSCAPE = 32
+MAX_COLS_PORTRAIT = 24
+
+
+def ensure_dirs():
+    os.makedirs(EXPORT_DIR, exist_ok=True)
+
+
+def render_template(template_name, context):
+    """Render a Jinja2 template with LaTeX-safe delimiters."""
+    env = Environment(
+        loader=FileSystemLoader(TEMPLATE_DIR),
+        block_start_string='<%',
+        block_end_string='%>',
+        variable_start_string='<<',
+        variable_end_string='>>',
+        comment_start_string='<#',
+        comment_end_string='#>',
+    )
+    template = env.get_template(template_name)
+    return template.render(**context)
+
+
+def compile_pdf(tex_content, output_path):
+    """Write .tex to temp dir, compile with pdflatex, move PDF to output."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tex_path = os.path.join(tmpdir, 'output.tex')
+        with open(tex_path, 'w') as f:
+            f.write(tex_content)
+
+        result = subprocess.run(
+            [PDFLATEX, '-interaction=nonstopmode', '-output-directory', tmpdir, tex_path],
+            capture_output=True, text=True, timeout=30
+        )
+        pdf_path = os.path.join(tmpdir, 'output.pdf')
+        if not os.path.exists(pdf_path):
+            print("LaTeX compilation failed:")
+            print(result.stdout[-2000:] if len(result.stdout) > 2000 else result.stdout)
+            sys.exit(1)
+
+        # Move PDF to final location
+        os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+        import shutil
+        shutil.move(pdf_path, output_path)
+
+    print(f"PDF: {output_path}")
+    return output_path
+
+
+def escape_latex(text):
+    """Escape special LaTeX characters in text (not in verbatim blocks)."""
+    replacements = [
+        ('\\', '\\textbackslash{}'),
+        ('#', '\\#'),
+        ('$', '\\$'),
+        ('%', '\\%'),
+        ('&', '\\&'),
+        ('_', '\\_'),
+        ('{', '\\{'),
+        ('}', '\\}'),
+        ('~', '\\textasciitilde{}'),
+        ('^', '\\textasciicircum{}'),
+    ]
+    for old, new in replacements:
+        text = text.replace(old, new)
+    return text
+
+
+def build_reference(root, scale_type, all_keys=False, output=None):
+    """Build reference sheet PDF."""
+    if all_keys:
+        roots = tab_gen.ALL_ROOTS
+        dr_label = scale_type.replace('-', ' ').title()
+        title = f"All 12 Keys -- {dr_label}"
+        default_name = f"all_keys_{scale_type}_reference.pdf"
+    else:
+        roots = [root]
+        dr = tab_gen.display_root(root)
+        dr_label = scale_type.replace('-', ' ').title()
+        title = f"{dr} {dr_label}"
+        default_name = f"{dr}_{scale_type}_reference.pdf".replace(' ', '_')
+
+    positions_data = []
+    for r in roots:
+        dr = tab_gen.display_root(r)
+        notes = tab_gen.get_scale_notes(r, scale_type)
+        display_notes = [tab_gen.display_note(n, r) for n in notes]
+        degree_names = tab_gen.SCALE_DEGREE_NAMES.get(scale_type, [])
+        positions = tab_gen.get_scale_positions(r, scale_type)
+
+        for pos in positions:
+            fmin, fmax = pos['fret_range']
+            tab_text = tab_gen.render_tab_sequential(pos, r, max_cols=MAX_COLS_LANDSCAPE)
+            # Note legend
+            parts = []
+            for s in range(6):
+                label = tab_gen.TUNING_LABELS[s]
+                for n in pos['strings'][s]:
+                    parts.append(f"{label}:{n['fret']}={tab_gen.display_note(n['note'], r)}")
+            note_legend = ' | '.join(parts)
+
+            key_label = f"{dr} {dr_label} -- " if all_keys else ""
+            positions_data.append({
+                'number': f"{key_label}Position {pos['position']}",
+                'fret_range': f"{fmin}-{fmax}",
+                'tab': tab_text,
+                'notes': escape_latex(note_legend),
+            })
+
+    scale_notes = tab_gen.get_scale_notes(roots[0], scale_type)
+    display_notes = [tab_gen.display_note(n, roots[0]) for n in scale_notes]
+    degree_names = tab_gen.SCALE_DEGREE_NAMES.get(scale_type, [])
+    info_parts = [f"Notes: {', '.join(display_notes)}"]
+    if degree_names:
+        info_parts.append(f"Degrees: {', '.join(degree_names)}")
+
+    context = {
+        'title': escape_latex(title),
+        'scale_info': escape_latex(' | '.join(info_parts)) if not all_keys else escape_latex(f"{len(roots)} keys x 5 positions = {len(positions_data)} patterns"),
+        'positions': positions_data,
+    }
+
+    tex = render_template('scale_reference.tex.j2', context)
+    output_path = output or os.path.join(EXPORT_DIR, default_name)
+    return compile_pdf(tex, output_path)
+
+
+def build_exercises(root, scale_type, pos_num='1', output=None):
+    """Build exercise sheet PDF."""
+    dr = tab_gen.display_root(root)
+    dr_label = scale_type.replace('-', ' ').title()
+    positions = tab_gen.get_scale_positions(root, scale_type)
+
+    if pos_num == 'all':
+        pos_list = positions
+        title = f"{dr} {dr_label} -- All Positions Exercises"
+        default_name = f"{dr}_{scale_type}_all_exercises.pdf".replace(' ', '_')
+    else:
+        idx = int(pos_num) - 1
+        if idx < 0 or idx >= len(positions):
+            print(f"Position {pos_num} not found (1-{len(positions)})")
+            sys.exit(1)
+        pos_list = [positions[idx]]
+        title = f"{dr} {dr_label} -- Position {pos_num} Exercises"
+        default_name = f"{dr}_{scale_type}_pos{pos_num}_exercises.pdf".replace(' ', '_')
+
+    exercises_data = []
+    for pos in pos_list:
+        for etype in tab_gen.EXERCISE_TYPES:
+            gen_fn = tab_gen.EXERCISE_TYPES[etype]
+            name, events = gen_fn(pos)
+            tab_text = tab_gen.render_exercise_tab(events, max_cols=MAX_COLS_PORTRAIT)
+            pos_label = f"Position {pos['position']} -- " if pos_num == 'all' else ""
+            exercises_data.append({
+                'name': escape_latex(f"{pos_label}{name}"),
+                'tab': tab_text,
+            })
+
+    notes = tab_gen.get_scale_notes(root, scale_type)
+    display_notes = [tab_gen.display_note(n, root) for n in notes]
+    info = f"Notes: {', '.join(display_notes)}"
+
+    context = {
+        'title': escape_latex(title),
+        'scale_info': escape_latex(info),
+        'exercises': exercises_data,
+    }
+
+    tex = render_template('exercises.tex.j2', context)
+    output_path = output or os.path.join(EXPORT_DIR, default_name)
+    return compile_pdf(tex, output_path)
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(__doc__)
+        sys.exit(0)
+
+    ensure_dirs()
+    cmd = sys.argv[1]
+
+    # Parse common flags
+    output = None
+    all_keys = False
+    pos_num = '1'
+    for i, arg in enumerate(sys.argv):
+        if arg == '--output' and i + 1 < len(sys.argv):
+            output = sys.argv[i + 1]
+        if arg == '--all-keys':
+            all_keys = True
+        if arg == '--position' and i + 1 < len(sys.argv):
+            pos_num = sys.argv[i + 1]
+
+    if cmd == 'reference':
+        if all_keys:
+            # Find scale type arg (not a flag)
+            scale_type = 'minor-pentatonic'
+            for a in sys.argv[2:]:
+                if not a.startswith('--') and a in tab_gen.SCALE_FORMULAS:
+                    scale_type = a
+                    break
+            build_reference(None, scale_type, all_keys=True, output=output)
+        else:
+            if len(sys.argv) < 3:
+                print("Usage: mirador-tab-export reference Am-pentatonic")
+                sys.exit(1)
+            scale_arg = sys.argv[2]
+            root, scale_type = tab_gen.parse_scale_arg(scale_arg)
+            build_reference(root, scale_type, output=output)
+
+    elif cmd == 'exercises':
+        if len(sys.argv) < 3:
+            print("Usage: mirador-tab-export exercises Am-pentatonic --position 1")
+            sys.exit(1)
+        scale_arg = sys.argv[2]
+        root, scale_type = tab_gen.parse_scale_arg(scale_arg)
+        build_exercises(root, scale_type, pos_num, output=output)
+
+    else:
+        print(f"Unknown command: {cmd}")
+        print(__doc__)
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

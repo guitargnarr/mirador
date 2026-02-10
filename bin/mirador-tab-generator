@@ -200,11 +200,49 @@ def get_scale_positions(root, scale_type='minor-pentatonic'):
     return positions
 
 
-def render_tab_sequential(pos_data, root='C'):
+def _render_columns(lines_dict, max_cols=0):
+    """Render column data into tab lines, wrapping at max_cols if set.
+
+    lines_dict: {string_idx: [col_str, col_str, ...]}
+    max_cols: max columns per line (0 = no limit)
+    Returns formatted tab string.
+    """
+    total_cols = len(lines_dict[0])
+    if total_cols == 0:
+        return ""
+
+    if max_cols <= 0:
+        max_cols = total_cols
+
+    # Build the first (full) chunk to get the target line width
+    first_content = '--'.join(lines_dict[0][0:min(max_cols, total_cols)])
+    target_width = len(f"  e|--{first_content}--|")
+
+    chunks = []
+    for start in range(0, total_cols, max_cols):
+        end = min(start + max_cols, total_cols)
+        chunk_lines = []
+        for s in reversed(range(6)):
+            label = TUNING_LABELS[s]
+            content = '--'.join(lines_dict[s][start:end])
+            line = f"  {label}|--{content}--|"
+            # Pad shorter chunks with dashes to match full width
+            if len(line) < target_width:
+                # Insert dashes before the closing --|
+                pad = target_width - len(line)
+                line = f"  {label}|--{content}{'-' * pad}--|"
+            chunk_lines.append(line)
+        chunks.append('\n'.join(chunk_lines))
+
+    return '\n\n'.join(chunks)
+
+
+def render_tab_sequential(pos_data, root='C', max_cols=0):
     """Render tab as an ascending scale run - notes play left to right, one string at a time.
 
     This is how you actually play a scale: low E first, then A, D, G, B, e.
     Each string's notes appear at the correct horizontal position in the sequence.
+    max_cols: wrap after this many note columns (0 = no wrap).
     """
     # Build the sequential note list: string 0 notes, string 1 notes, etc.
     all_events = []  # list of (string_idx, fret, note)
@@ -212,35 +250,21 @@ def render_tab_sequential(pos_data, root='C'):
         for n in pos_data['strings'][s]:
             all_events.append((s, n['fret'], n['note']))
 
-    total_notes = len(all_events)
-    if total_notes == 0:
+    if not all_events:
         return ""
 
-    # Each column is one note in the sequence
-    # Column width: 4 chars per note slot (enough for "--XX" where XX is up to 2 digits)
-    col_width = 4
-
     # Build each string's line
-    lines = {}
-    for s in range(6):
-        lines[s] = []
+    lines = {s: [] for s in range(6)}
 
     for col_idx, (active_s, fret, note) in enumerate(all_events):
         fret_str = str(fret)
         for s in range(6):
             if s == active_s:
-                # This string has a note in this column
                 lines[s].append(fret_str.rjust(2))
             else:
                 lines[s].append('--')
 
-    output = []
-    for s in reversed(range(6)):
-        label = TUNING_LABELS[s]
-        content = '--'.join(lines[s])
-        output.append(f"  {label}|--{content}--|")
-
-    return '\n'.join(output)
+    return _render_columns(lines, max_cols)
 
 
 def render_position_full(pos_data, scale_notes, scale_type, root='C'):
@@ -285,10 +309,11 @@ def flatten_position(pos_data):
     return notes
 
 
-def render_exercise_tab(events, label_prefix=""):
+def render_exercise_tab(events, label_prefix="", max_cols=0):
     """Render a list of (string_idx, fret_text) events as sequential tab.
 
     fret_text can be a plain number string or include technique marks like 'D5' or '>8'.
+    max_cols: wrap after this many note columns (0 = no wrap).
     """
     if not events:
         return ""
@@ -304,12 +329,7 @@ def render_exercise_tab(events, label_prefix=""):
             else:
                 lines[s].append('-' * tw)
 
-    output = []
-    for s in reversed(range(6)):
-        label = TUNING_LABELS[s]
-        content = '--'.join(lines[s])
-        output.append(f"  {label}|--{content}--|")
-    return '\n'.join(output)
+    return _render_columns(lines, max_cols)
 
 
 def exercise_ascending(pos_data):
