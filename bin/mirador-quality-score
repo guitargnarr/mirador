@@ -1,0 +1,281 @@
+#!/usr/bin/env python3
+"""Score benchmark outputs on instruction-following, structure, substance, and overall quality.
+
+Reads .md files from a benchmark output directory, applies heuristic scoring,
+and produces a ranked report + CSV.
+
+Usage:
+    mirador-quality-score [OUTPUT_DIR]
+    # Default: ~/.mirador/benchmark_outputs/run4_captured/
+"""
+
+import os
+import re
+import sys
+import csv
+from pathlib import Path
+
+DEFAULT_DIR = os.path.expanduser("~/.mirador/benchmark_outputs/run4_captured")
+
+# Each domain prompt asks for a specific count of items
+DOMAIN_EXPECTED_COUNTS = {
+    "benchmark:financial": 3,
+    "benchmark:career": 3,
+    "benchmark:local": 3,       # 3 sectors
+    "benchmark:music": 5,       # 5 exercises
+    "benchmark:health": 5,      # 5 habits
+    "benchmark:code": 5,        # 5 endpoints
+    "benchmark:content": 1,     # 1 post
+    "benchmark:productivity": 3,
+    "benchmark:strategy": 1,    # 1 recommendation
+    "benchmark:architecture": 4, # 4 patterns
+    "benchmark:data": 3,
+    "benchmark:base-llm": 1,    # general explanation
+    "benchmark:general": 3,     # 3 bullet points
+}
+
+
+def parse_file(path):
+    """Parse a benchmark output .md file into metadata + response."""
+    text = path.read_text(encoding="utf-8", errors="replace")
+    meta = {}
+    response = ""
+    in_response = False
+    for line in text.split("\n"):
+        if line.startswith("- Domain:"):
+            meta["domain"] = line.split(":", 1)[1].strip()
+        elif line.startswith("- Duration:"):
+            meta["duration"] = line.split(":", 1)[1].strip().rstrip("s")
+        elif line.startswith("- Output:"):
+            meta["output_chars"] = line.split(":", 1)[1].strip().split()[0]
+        elif line.startswith("# "):
+            meta["model"] = line[2:].strip()
+        elif line.startswith("## Response"):
+            in_response = True
+            continue
+        if in_response:
+            response += line + "\n"
+    meta["response"] = response.strip()
+    return meta
+
+
+def score_instruction_following(response, domain):
+    """Score 1-5: did the response produce the expected number of items?"""
+    expected = DOMAIN_EXPECTED_COUNTS.get(domain, 3)
+
+    if len(response) < 50:
+        return 1  # Empty/broken
+
+    # Count numbered items (1. 2. 3. or **1. **2. etc)
+    numbered = re.findall(r'(?:^|\n)\s*(?:\*\*)?(\d+)[.)]\s', response)
+    # Count bold headers that look like items
+    bold_items = re.findall(r'\*\*(?:Strategy|Pattern|Step|Approach|Endpoint|Exercise|Habit|Sector|Tip)\s*\d*', response, re.IGNORECASE)
+    # Count markdown headers (### or ##) within response
+    headers = re.findall(r'(?:^|\n)#{2,4}\s+\S', response)
+
+    item_count = max(len(set(numbered)), len(bold_items), len(headers))
+
+    if expected == 1:
+        # Just needs to be substantive
+        return 5 if len(response) > 200 else 3
+
+    if item_count >= expected:
+        return 5
+    elif item_count >= expected - 1:
+        return 4
+    elif item_count >= expected - 2:
+        return 3
+    elif item_count >= 1:
+        return 2
+    else:
+        return 1
+
+
+def score_structure(response):
+    """Score 1-5: is the response well-organized?"""
+    if len(response) < 50:
+        return 1
+
+    signals = 0
+    # Has bullet points or numbered lists
+    if re.search(r'(?:^|\n)\s*[-*]\s', response):
+        signals += 1
+    if re.search(r'(?:^|\n)\s*\d+[.)]\s', response):
+        signals += 1
+    # Has bold text
+    if re.search(r'\*\*[^*]+\*\*', response):
+        signals += 1
+    # Has markdown headers
+    if re.search(r'(?:^|\n)#{1,4}\s', response):
+        signals += 1
+    # Has paragraph breaks (multiple blank lines or sections)
+    if response.count("\n\n") >= 3:
+        signals += 1
+    # Has code blocks
+    if "```" in response:
+        signals += 1
+
+    if signals >= 5:
+        return 5
+    elif signals >= 4:
+        return 4
+    elif signals >= 3:
+        return 3
+    elif signals >= 2:
+        return 2
+    else:
+        return 1
+
+
+def score_substance(response, domain):
+    """Score 1-5: is the content specific and actionable vs vague?"""
+    if len(response) < 50:
+        return 1
+
+    signals = 0
+    words = response.split()
+    word_count = len(words)
+
+    # Length check - longer usually means more substance (within reason)
+    if word_count > 500:
+        signals += 2
+    elif word_count > 200:
+        signals += 1
+
+    # Contains numbers/metrics (specific rather than vague)
+    numbers = re.findall(r'\$[\d,]+|\d+%|\d+\s*(?:hours?|days?|weeks?|months?|BPM|tok/s)', response)
+    if len(numbers) >= 5:
+        signals += 2
+    elif len(numbers) >= 2:
+        signals += 1
+
+    # Domain-specific substance checks
+    if domain == "benchmark:financial":
+        if re.search(r'\$[\d,]+', response):
+            signals += 1
+        if re.search(r'(?:monthly|annual|return|yield|income)', response, re.IGNORECASE):
+            signals += 1
+    elif domain == "benchmark:code":
+        if re.search(r'(?:GET|POST|PUT|DELETE|PATCH)\s', response):
+            signals += 1
+        if re.search(r'(?:JSON|endpoint|schema|auth)', response, re.IGNORECASE):
+            signals += 1
+    elif domain == "benchmark:music":
+        if re.search(r'(?:BPM|tempo|scale|fret|chord)', response, re.IGNORECASE):
+            signals += 1
+    elif domain == "benchmark:career":
+        if re.search(r'(?:timeline|milestone|month|week|certif)', response, re.IGNORECASE):
+            signals += 1
+    elif domain == "benchmark:architecture":
+        if re.search(r'(?:tradeoff|trade-off|pro|con|advantage|disadvantage)', response, re.IGNORECASE):
+            signals += 1
+
+    # Penalize very short responses
+    if word_count < 100:
+        signals = max(0, signals - 2)
+
+    if signals >= 5:
+        return 5
+    elif signals >= 4:
+        return 4
+    elif signals >= 3:
+        return 3
+    elif signals >= 2:
+        return 2
+    else:
+        return 1
+
+
+def score_overall(instr, struct, subst):
+    """Weighted composite: instruction 30%, structure 20%, substance 50%."""
+    raw = instr * 0.3 + struct * 0.2 + subst * 0.5
+    return round(raw, 1)
+
+
+def main():
+    output_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(DEFAULT_DIR)
+    if not output_dir.exists():
+        print(f"Error: directory not found: {output_dir}")
+        sys.exit(1)
+
+    files = sorted(output_dir.glob("*.md"))
+    if not files:
+        print(f"No .md files found in {output_dir}")
+        sys.exit(1)
+
+    results = []
+    for f in files:
+        meta = parse_file(f)
+        response = meta.get("response", "")
+        domain = meta.get("domain", "benchmark:general")
+        model = meta.get("model", f.stem)
+
+        instr = score_instruction_following(response, domain)
+        struct = score_structure(response)
+        subst = score_substance(response, domain)
+        overall = score_overall(instr, struct, subst)
+
+        results.append({
+            "model": model,
+            "domain": domain,
+            "duration": meta.get("duration", "?"),
+            "chars": meta.get("output_chars", "?"),
+            "instruction": instr,
+            "structure": struct,
+            "substance": subst,
+            "overall": overall,
+        })
+
+    # Sort by overall score descending
+    results.sort(key=lambda r: r["overall"], reverse=True)
+
+    # Print report
+    print("")
+    print("  MIRADOR MODEL QUALITY SCORES")
+    print(f"  {len(results)} models scored")
+    print("  " + "-" * 88)
+    print(f"  {'MODEL':<42} {'DOMAIN':<22} {'INST':>4} {'STRC':>4} {'SUBS':>4} {'OVRL':>5}")
+    print("  " + "-" * 88)
+
+    for r in results:
+        print(f"  {r['model']:<42} {r['domain']:<22} {r['instruction']:>4} {r['structure']:>4} {r['substance']:>4} {r['overall']:>5}")
+
+    # Summary stats
+    print("")
+    print("  " + "-" * 88)
+    avg_overall = sum(r["overall"] for r in results) / len(results)
+    top = [r for r in results if r["overall"] >= 4.0]
+    broken = [r for r in results if r["overall"] <= 1.5]
+    print(f"  Average overall: {avg_overall:.1f}")
+    print(f"  Top tier (>=4.0): {len(top)} models")
+    print(f"  Broken (<=1.5):   {len(broken)} models")
+
+    if broken:
+        print("")
+        print("  BROKEN MODELS:")
+        for r in broken:
+            print(f"    {r['model']}")
+
+    # By domain average
+    print("")
+    print(f"  {'DOMAIN':<24} {'AVG QUALITY':>11} {'COUNT':>6}")
+    print("  " + "-" * 44)
+    domains = {}
+    for r in results:
+        domains.setdefault(r["domain"], []).append(r["overall"])
+    for d in sorted(domains, key=lambda d: sum(domains[d]) / len(domains[d]), reverse=True):
+        avg = sum(domains[d]) / len(domains[d])
+        print(f"  {d:<24} {avg:>11.1f} {len(domains[d]):>6}")
+
+    # Save CSV
+    csv_path = output_dir / "quality_scores.csv"
+    with open(csv_path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["model", "domain", "duration", "chars", "instruction", "structure", "substance", "overall"])
+        writer.writeheader()
+        writer.writerows(results)
+    print(f"\n  CSV saved: {csv_path}")
+    print("")
+
+
+if __name__ == "__main__":
+    main()
