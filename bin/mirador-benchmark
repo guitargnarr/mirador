@@ -126,6 +126,7 @@ echo ""
 # Options
 ONLY_NEW=false
 DRY_RUN=false
+SAVE_OUTPUTS=false
 FILTER=""
 BATCH=0          # 0 = unlimited
 COOLDOWN=5       # seconds between models to let GPU cool
@@ -133,11 +134,20 @@ for arg in "$@"; do
     case "$arg" in
         --only-new) ONLY_NEW=true ;;
         --dry-run) DRY_RUN=true ;;
+        --save-outputs) SAVE_OUTPUTS=true ;;
         --domain=*) FILTER="${arg#--domain=}" ;;
         --batch=*) BATCH="${arg#--batch=}" ;;
         --cooldown=*) COOLDOWN="${arg#--cooldown=}" ;;
     esac
 done
+
+# Output capture directory
+OUTPUT_DIR="${HOME}/.mirador/benchmark_outputs/$(date +%Y%m%d_%H%M%S)"
+if $SAVE_OUTPUTS; then
+    mkdir -p "$OUTPUT_DIR"
+    echo "  Saving outputs to: $OUTPUT_DIR"
+    echo ""
+fi
 
 while IFS= read -r model; do
     [ -z "$model" ] && continue
@@ -169,7 +179,9 @@ while IFS= read -r model; do
     metrics_start "$session_id" "$prompt" "$task_type"
 
     start_ts=$(date +%s)
-    output=$(echo "$prompt" | timeout 120 ollama run "$model" 2>&1) || true
+    output=$(echo "$prompt" | timeout 120 ollama run "$model" 2>/dev/null) || true
+    # Strip any remaining ANSI escape sequences
+    output=$(printf '%s' "$output" | sed $'s/\x1b\[[0-9;?]*[a-zA-Z]//g' | sed $'s/\x1b\[[0-9;?]*[hlm]//g' | tr -d $'\x1b')
     end_ts=$(date +%s)
     elapsed=$((end_ts - start_ts))
     output_len=${#output}
@@ -185,6 +197,25 @@ while IFS= read -r model; do
         metrics_finish 1
         RAN=$((RAN + 1))
         printf "OK    %3ds  %5d chars\n" "$elapsed" "$output_len"
+    fi
+
+    # Save output to file if requested
+    if $SAVE_OUTPUTS; then
+        safe_name=$(echo "$model" | tr '/:' '_')
+        outfile="$OUTPUT_DIR/${safe_name}.md"
+        {
+            echo "# $model"
+            echo "- Domain: $task_type"
+            echo "- Duration: ${elapsed}s"
+            echo "- Output: ${output_len} chars"
+            echo "- Session: $session_id"
+            echo ""
+            echo "## Prompt"
+            echo "$prompt"
+            echo ""
+            echo "## Response"
+            echo "$output"
+        } > "$outfile"
     fi
 
     # Batch limit check
