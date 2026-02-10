@@ -33,25 +33,66 @@ TUNING_LABELS = ['E', 'A', 'D', 'G', 'B', 'e']  # display labels
 
 # Scale formulas (intervals in semitones from root)
 SCALE_FORMULAS = {
+    # Pentatonic
     'minor-pentatonic': [0, 3, 5, 7, 10],
     'major-pentatonic': [0, 2, 4, 7, 9],
-    'natural-minor':    [0, 2, 3, 5, 7, 8, 10],
-    'natural-major':    [0, 2, 4, 5, 7, 9, 11],
+    # Blues
     'blues':            [0, 3, 5, 6, 7, 10],
+    'major-blues':      [0, 2, 3, 4, 7, 9],
+    # Diatonic modes
+    'natural-major':    [0, 2, 4, 5, 7, 9, 11],
+    'natural-minor':    [0, 2, 3, 5, 7, 8, 10],
     'dorian':           [0, 2, 3, 5, 7, 9, 10],
+    'phrygian':         [0, 1, 3, 5, 7, 8, 10],
+    'lydian':           [0, 2, 4, 6, 7, 9, 11],
     'mixolydian':       [0, 2, 4, 5, 7, 9, 10],
+    'locrian':          [0, 1, 3, 5, 6, 8, 10],
+    # Harmonic minor family
     'harmonic-minor':   [0, 2, 3, 5, 7, 8, 11],
+    'phrygian-dominant': [0, 1, 4, 5, 7, 8, 10],
+    # Melodic minor family
+    'melodic-minor':    [0, 2, 3, 5, 7, 9, 11],
+    'lydian-dominant':  [0, 2, 4, 6, 7, 9, 10],
+    'altered':          [0, 1, 3, 4, 6, 8, 10],
+    # Symmetric
+    'whole-tone':       [0, 2, 4, 6, 8, 10],
+    'half-whole-dim':   [0, 1, 3, 4, 6, 7, 9, 10],
+    'whole-half-dim':   [0, 2, 3, 5, 6, 8, 9, 11],
+    # Bebop
+    'bebop-dominant':   [0, 2, 4, 5, 7, 9, 10, 11],
+    # Exotic
+    'double-harmonic':  [0, 1, 4, 5, 7, 8, 11],
+    'hungarian-minor':  [0, 2, 3, 6, 7, 8, 11],
+    # Japanese pentatonic
+    'hirajoshi':        [0, 2, 3, 7, 8],
+    'in-sen':           [0, 1, 5, 7, 10],
 }
 
 SCALE_DEGREE_NAMES = {
     'minor-pentatonic': ['1', 'b3', '4', '5', 'b7'],
     'major-pentatonic': ['1', '2', '3', '5', '6'],
     'blues':            ['1', 'b3', '4', 'b5', '5', 'b7'],
-    'natural-minor':    ['1', '2', 'b3', '4', '5', 'b6', 'b7'],
+    'major-blues':      ['1', '2', 'b3', '3', '5', '6'],
     'natural-major':    ['1', '2', '3', '4', '5', '6', '7'],
+    'natural-minor':    ['1', '2', 'b3', '4', '5', 'b6', 'b7'],
     'dorian':           ['1', '2', 'b3', '4', '5', '6', 'b7'],
+    'phrygian':         ['1', 'b2', 'b3', '4', '5', 'b6', 'b7'],
+    'lydian':           ['1', '2', '3', '#4', '5', '6', '7'],
     'mixolydian':       ['1', '2', '3', '4', '5', '6', 'b7'],
+    'locrian':          ['1', 'b2', 'b3', '4', 'b5', 'b6', 'b7'],
     'harmonic-minor':   ['1', '2', 'b3', '4', '5', 'b6', '7'],
+    'phrygian-dominant': ['1', 'b2', '3', '4', '5', 'b6', 'b7'],
+    'melodic-minor':    ['1', '2', 'b3', '4', '5', '6', '7'],
+    'lydian-dominant':  ['1', '2', '3', '#4', '5', '6', 'b7'],
+    'altered':          ['1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7'],
+    'whole-tone':       ['1', '2', '3', '#4', '#5', 'b7'],
+    'half-whole-dim':   ['1', 'b2', '#2', '3', '#4', '5', '6', 'b7'],
+    'whole-half-dim':   ['1', '2', 'b3', '4', 'b5', 'b6', '6', '7'],
+    'bebop-dominant':   ['1', '2', '3', '4', '5', '6', 'b7', '7'],
+    'double-harmonic':  ['1', 'b2', '3', '4', '5', 'b6', '7'],
+    'hungarian-minor':  ['1', '2', 'b3', '#4', '5', 'b6', '7'],
+    'hirajoshi':        ['1', '2', 'b3', '5', 'b6'],
+    'in-sen':           ['1', 'b2', '4', '5', 'b7'],
 }
 
 # Chord formulas
@@ -499,6 +540,14 @@ DIATONIC_CHORDS = {
         (0, 'major'), (1, 'minor'), (2, 'minor'), (3, 'major'),
         (4, 'major'), (5, 'minor'), (6, 'dim'),
     ],
+    'harmonic-minor': [
+        (0, 'minor'), (1, 'dim'), (2, 'aug'), (3, 'minor'),
+        (4, 'major'), (5, 'major'), (6, 'dim'),
+    ],
+    'melodic-minor': [
+        (0, 'minor'), (1, 'minor'), (2, 'aug'), (3, 'major'),
+        (4, 'major'), (5, 'dim'), (6, 'dim'),
+    ],
 }
 
 # Which diatonic degrees to show as companion chords per scale type
@@ -506,11 +555,27 @@ COMPANION_DEGREES = {
     'minor-pentatonic': [0, 2, 3, 4, 6],   # i, III, iv, v, VII
     'major-pentatonic': [0, 1, 3, 4, 5],    # I, ii, IV, V, vi
     'blues':            None,                 # special: I7, IV7, V7
+    'major-blues':      None,                 # special: I7, IV7, V7
     'natural-minor':    [0, 2, 3, 4, 5, 6],  # i, III, iv, v, VI, VII
     'natural-major':    [0, 1, 3, 4, 5],      # I, ii, IV, V, vi
     'dorian':           [0, 2, 3, 6],          # i, III, IV, VII
-    'mixolydian':       [0, 3, 4, 6],          # I, IV, v, VII
+    'phrygian':         [0, 1, 5, 6],          # i, bII, bVI, bVII
+    'lydian':           [0, 1, 4, 5],          # I, II, V, vi
+    'mixolydian':       [0, 3, 4, 6],          # I, IV, v, bVII
+    'locrian':          [0, 1, 2, 5],          # dim, bII, bIII, bVI
     'harmonic-minor':   [0, 3, 4, 5],          # i, iv, V, VI
+    'phrygian-dominant': [0, 1, 5, 6],         # I, bII, bvi, bVII (from harm minor)
+    'melodic-minor':    [0, 3, 4],             # i, IV, V
+    'lydian-dominant':  [0, 3, 4],             # I, IV, V (from mel minor)
+    'altered':          None,                   # special: V7alt -> I
+    'whole-tone':       None,                   # special: aug/dom7#5
+    'half-whole-dim':   None,                   # special: dom7b9
+    'whole-half-dim':   None,                   # special: dim7
+    'bebop-dominant':   [0, 3, 4, 6],          # I, IV, v, bVII (like mixolydian)
+    'double-harmonic':  [0, 1, 3, 4],          # I, bII, iv, V
+    'hungarian-minor':  [0, 3, 4, 5],          # i, iv, V, bVI
+    'hirajoshi':        [0, 2, 3, 4],          # i, bIII, iv, v
+    'in-sen':           [0, 1, 3, 4],          # i, bII, iv, v
 }
 
 # Parent scale for diatonic chord lookup
@@ -518,11 +583,27 @@ SCALE_PARENT = {
     'minor-pentatonic': 'natural-minor',
     'major-pentatonic': 'natural-major',
     'blues':            'natural-minor',
+    'major-blues':      'natural-major',
     'natural-minor':    'natural-minor',
     'natural-major':    'natural-major',
     'dorian':           'natural-minor',
+    'phrygian':         'natural-minor',
+    'lydian':           'natural-major',
     'mixolydian':       'natural-major',
-    'harmonic-minor':   'natural-minor',
+    'locrian':          'natural-minor',
+    'harmonic-minor':   'harmonic-minor',
+    'phrygian-dominant': 'harmonic-minor',
+    'melodic-minor':    'melodic-minor',
+    'lydian-dominant':  'melodic-minor',
+    'altered':          'melodic-minor',
+    'whole-tone':       'natural-major',
+    'half-whole-dim':   'natural-major',
+    'whole-half-dim':   'natural-minor',
+    'bebop-dominant':   'natural-major',
+    'double-harmonic':  'natural-minor',
+    'hungarian-minor':  'natural-minor',
+    'hirajoshi':        'natural-minor',
+    'in-sen':           'natural-minor',
 }
 
 
@@ -560,17 +641,53 @@ def get_chord_voicing(root, chord_type='minor'):
 
 def get_companion_chords(root, scale_type='minor-pentatonic'):
     """Return companion chords for a scale as [(name, voicing), ...]."""
-    # Special case: blues uses I7 IV7 V7
-    if scale_type == 'blues' or COMPANION_DEGREES.get(scale_type) is None:
-        parent = SCALE_PARENT.get(scale_type, 'natural-minor')
-        parent_notes = get_scale_notes(root, parent)
-        chords = []
-        for degree in [0, 3, 4]:  # I, IV, V
-            chord_root = parent_notes[degree]
-            dr = display_note(chord_root, root)
-            voicing = get_chord_voicing(chord_root, 'dom7')
-            chords.append((f"{dr}7", voicing))
-        return chords
+    # Special cases for scales with None companion degrees
+    if COMPANION_DEGREES.get(scale_type) is None:
+        dr = display_note(root, root)
+        if scale_type in ('blues', 'major-blues'):
+            # I7 IV7 V7
+            parent = SCALE_PARENT.get(scale_type, 'natural-minor')
+            parent_notes = get_scale_notes(root, parent)
+            chords = []
+            for degree in [0, 3, 4]:
+                chord_root = parent_notes[degree]
+                cdr = display_note(chord_root, root)
+                voicing = get_chord_voicing(chord_root, 'dom7')
+                chords.append((f"{cdr}7", voicing))
+            return chords
+        elif scale_type == 'altered':
+            # V7alt resolves to Imaj7 -- show the target I chord and the V7
+            parent_notes = get_scale_notes(root, 'natural-major')
+            chords = [
+                (f"{dr}7", get_chord_voicing(root, 'dom7')),
+                (f"{display_note(parent_notes[3], root)}maj7", get_chord_voicing(parent_notes[3], 'maj7')),
+            ]
+            return chords
+        elif scale_type == 'whole-tone':
+            # Augmented/dom7#5 context
+            chords = [
+                (f"{dr}7", get_chord_voicing(root, 'dom7')),
+                (f"{dr}aug", get_chord_voicing(root, 'aug')),
+            ]
+            return chords
+        elif scale_type in ('half-whole-dim', 'whole-half-dim'):
+            # Dominant diminished or diminished context
+            chords = [
+                (f"{dr}7", get_chord_voicing(root, 'dom7')),
+                (f"{dr}dim", get_chord_voicing(root, 'dim')),
+            ]
+            return chords
+        else:
+            # Fallback: I7 IV7 V7
+            parent = SCALE_PARENT.get(scale_type, 'natural-minor')
+            parent_notes = get_scale_notes(root, parent)
+            chords = []
+            for degree in [0, 3, 4]:
+                chord_root = parent_notes[degree]
+                cdr = display_note(chord_root, root)
+                voicing = get_chord_voicing(chord_root, 'dom7')
+                chords.append((f"{cdr}7", voicing))
+            return chords
 
     parent = SCALE_PARENT.get(scale_type, 'natural-minor')
     parent_notes = get_scale_notes(root, parent)
