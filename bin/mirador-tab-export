@@ -310,9 +310,25 @@ def build_book(scale_type, single_key=None, output=None):
             'chapters': chapters,
         })
 
+    # Compute stats for cover page
+    num_keys = total_keys
+    num_positions = 5
+    num_exercise_types = len(tab_gen.EXERCISE_TYPES)
+    # Sample first chapter for chord count
+    sample_chords = tab_gen.get_companion_chords(all_keys[0], scale_type)
+    num_chords = len(sample_chords)
+    total_exercises = num_keys * num_positions * num_exercise_types
+    total_tabs = num_keys * (num_positions + num_chords + num_positions * num_exercise_types)
+
     context = {
         'title': escape_latex(title),
         'parts': parts,
+        'num_keys': num_keys,
+        'num_positions': num_positions,
+        'num_chords': num_chords,
+        'num_exercise_types': num_exercise_types,
+        'total_exercises': total_exercises,
+        'total_tabs': total_tabs,
     }
 
     print("Rendering LaTeX...")
