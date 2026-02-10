@@ -23,7 +23,7 @@ prompt_for() {
     local model="$1"
     case "$model" in
         # Financial / Tax / Wealth
-        financial_calculator|financial_planning_expert_v6|cpa-wealth-advisor|business-tax-2026|homeowner-tax-strategies|wealth-mindset|cot-business-tax-strategist|cot-passive-income-strategist|passive-income-expert|cot-deal-structurer|deal-structuring-expert|cot-real-estate-investor|real-estate-investor|cot-entity-structure-advisor|ngo-corporate-structures)
+        cpa-wealth-advisor|homeowner-tax-strategies|wealth-mindset|cot-passive-income-strategist|passive-income-expert|cot-deal-structurer|deal-structuring-expert|real-estate-investor|ngo-corporate-structures)
             echo "A 35-year-old software engineer earns 120K annually, has 50K in savings, no debt, and wants to build passive income streams. Provide exactly 3 specific, actionable strategies ranked by risk-adjusted return. Include estimated monthly income for each."
             ;;
         # Career / Professional
@@ -34,9 +34,21 @@ prompt_for() {
         louisville-job-market|louisville_expert_v2|local_market_expert)
             echo "Compare the tech job market in Louisville KY across three sectors: healthcare IT, fintech, and SaaS startups. Provide salary ranges, top 3 employers per sector, and growth trajectory for 2025-2026."
             ;;
-        # Music / Guitar
-        guitar_tone_architect|master_guitar_instructor|drum_architect|rhythm_architect|lead_architect|audio_production_strategist|performance_anxiety_coach|touring_readiness_coach)
-            echo "Design a 30-day practice routine for an intermediate guitarist transitioning from rhythm to lead. Include exactly 5 daily exercises with specific BPM targets, time allocations, and progression milestones."
+        # Music / Guitar - per-model verifiable prompts
+        master_guitar_instructor)
+            echo "Write out the A minor pentatonic scale in all 5 positions across the fretboard. For each position provide: (1) the fret range, (2) ASCII tablature showing the exact notes on each string, (3) the scale degrees for each note. Then write a 4-bar legato exercise in position 1 using hammer-ons and pull-offs at 90 BPM in 16th notes with full ASCII tab."
+            ;;
+        guitar_tone_architect)
+            echo "I'm recording a high-gain metal rhythm tone in Logic Pro X using Neural DSP plugins. My signal chain is: guitar -> noise gate -> amp sim -> cab IR -> EQ -> compressor. Provide exact settings for each stage: gate threshold in dB, amp gain/EQ/presence values, cab IR mic position recommendation, parametric EQ bands with specific frequencies and Q values for tight low end, and compressor ratio/attack/release. Include the frequencies to cut for eliminating muddiness and the frequencies to boost for pick attack clarity."
+            ;;
+        audio_production_strategist)
+            echo "Build a Logic Pro X session template for tracking and mixing a 5-piece rock band (drums, bass, 2 guitars, vocals). For each instrument provide: (1) recommended mic/DI approach, (2) channel strip plugin chain with specific plugin names, (3) bus routing structure, (4) initial EQ frequency targets for carving space in the mix. Include a master bus chain with plugin order and starting settings."
+            ;;
+        performance_anxiety_coach)
+            echo "I have a live audition in 10 days for a touring band. I can play the material fine at home but my hands shake and I rush the tempo on stage. Design a day-by-day preparation protocol that combines: (1) specific physical techniques for managing adrenaline response (name the techniques), (2) mental rehearsal exercises with exact durations, (3) progressive exposure steps I can do before the audition day. Be specific about what to do each day."
+            ;;
+        touring_readiness_coach)
+            echo "I got offered a 4-week regional tour as lead guitarist for a country/rock act. I have 3 weeks to prepare. Create a complete preparation checklist covering: (1) gear reliability - what to bring, backup equipment, maintenance tasks before departure, (2) a system for learning 25 songs in 3 weeks with daily targets, (3) physical stamina plan for playing 90-minute sets nightly, (4) essential business items - what to clarify in the contract, per diem expectations, tax documentation to keep. Be specific with quantities and timelines."
             ;;
         # Health / Wellness
         health_wellness_optimizer)
@@ -46,9 +58,15 @@ prompt_for() {
         code-executor|codellama:7b|cot-api-designer|cot-performance-engineer|cot-software-architect|full-stack-engineer|elite-frontend|qwen2.5-coder:7b|qwen2.5-coder:32b|deepseek-r1:7b|deepseek-r1:14b)
             echo "Design a REST API for a task management system with users, projects, and tasks. Provide exactly 5 core endpoints with HTTP methods, request/response schemas, and authentication strategy. Use JSON format."
             ;;
-        # Content / Writing
-        content_strategist_pro|humanizer|english-to-spanish)
-            echo "Write a 150-word LinkedIn post announcing a career transition from software engineering to AI/ML leadership. Tone: confident but humble. Include a specific call-to-action."
+        # Content / Writing - per-model actionable prompts
+        content_strategist_pro)
+            echo "I run a consulting practice building AI orchestration systems and have 65 deployed client demo websites. Create a 4-week LinkedIn content calendar with exactly 12 posts (3 per week). For each post provide: (1) the hook (first line), (2) content angle (case study, insight, methodology, or prediction), (3) target audience, (4) call-to-action. Optimize for the LinkedIn algorithm - front-load engagement, use appropriate post length for each type."
+            ;;
+        humanizer)
+            echo "Rewrite the following AI-generated text to sound like a real person wrote it. Preserve all facts but make it conversational, add personality, and remove corporate jargon: 'Our AI orchestration platform leverages multi-model architecture to deliver optimized outcomes across diverse domains. By implementing sophisticated chain-of-thought reasoning pipelines, we enable seamless integration of specialized language models, resulting in superior output quality and enhanced decision-making capabilities for enterprise stakeholders.'"
+            ;;
+        english-to-spanish)
+            echo "Translate the following technical portfolio description to professional Latin American Spanish suitable for a LinkedIn profile. Preserve technical terms that don't have standard Spanish equivalents. Flag any terms where the translation choice matters regionally (Spain vs Mexico vs Argentina): 'Full-stack developer specializing in AI orchestration systems. Built 65+ client demo sites deployed on Vercel. Expert in React, Python, and local LLM deployment using Ollama. Currently building multi-model reasoning pipelines that chain specialized AI models for domain-specific analysis.'"
             ;;
         # Productivity / Decision
         productivity_optimizer|productivity-systems-expert|cot-productivity-engineer|decision_enhancer|decision_simplifier_v2)
@@ -59,11 +77,11 @@ prompt_for() {
             echo "Analyze the tradeoffs between building a custom AI orchestration system versus using LangChain or CrewAI. Evaluate on: maintainability, performance, flexibility, and learning curve. Provide a clear recommendation."
             ;;
         # Knowledge / Ontology / Expert Systems
-        llm-orchestration-ontology|kg-traversal-expert|prompt-engineering-expert|world-model-expert|app-architecture-expert|performance-percentiles-expert|design-oracle|design-system-atlas)
+        llm-orchestration-ontology|kg-traversal-expert|prompt-engineering-expert|world-model-expert|app-architecture-expert|performance-percentiles-expert|design-oracle)
             echo "Describe the key architectural patterns for building a multi-model AI orchestration system. Cover model routing, context accumulation, error handling, and output synthesis. Provide exactly 4 patterns with tradeoffs."
             ;;
         # Data / Analysis
-        data-analyzer-qwen|fact_validation_specialist|instruction_generation_specialist|opportunity_identification_specialist|digital_asset_curator)
+        fact_validation_specialist|instruction_generation_specialist|opportunity_identification_specialist|digital_asset_curator)
             echo "Given a dataset of 10000 customer transactions with columns: date, amount, category, customer_id, and region. Describe exactly 3 analytical approaches to identify the most valuable customer segments. Include specific metrics and methods."
             ;;
         # Base LLMs
@@ -80,13 +98,13 @@ prompt_for() {
 task_type_for() {
     local model="$1"
     case "$model" in
-        financial_calculator|financial_planning_expert_v6|cpa-wealth-advisor|business-tax-2026|homeowner-tax-strategies|wealth-mindset|cot-business-tax-strategist|cot-passive-income-strategist|passive-income-expert|cot-deal-structurer|deal-structuring-expert|cot-real-estate-investor|real-estate-investor|cot-entity-structure-advisor|ngo-corporate-structures)
+        cpa-wealth-advisor|homeowner-tax-strategies|wealth-mindset|cot-passive-income-strategist|passive-income-expert|cot-deal-structurer|deal-structuring-expert|real-estate-investor|ngo-corporate-structures)
             echo "benchmark:financial" ;;
         matthew-career-coach|barrier-breaker|linkedin_voice_architect|cot-career-strategist|cot-opportunity-decoder|skill-stack-expert|skill-stacker|client-prospector)
             echo "benchmark:career" ;;
         louisville-job-market|louisville_expert_v2|local_market_expert)
             echo "benchmark:local" ;;
-        guitar_tone_architect|master_guitar_instructor|drum_architect|rhythm_architect|lead_architect|audio_production_strategist|performance_anxiety_coach|touring_readiness_coach)
+        guitar_tone_architect|master_guitar_instructor|audio_production_strategist|performance_anxiety_coach|touring_readiness_coach)
             echo "benchmark:music" ;;
         health_wellness_optimizer)
             echo "benchmark:health" ;;
@@ -98,9 +116,9 @@ task_type_for() {
             echo "benchmark:productivity" ;;
         universal_context_provider|cross_model_synthesizer|mirador_self_reflection_guardian|enhanced_agent_fast_v6|unified-systems-architect)
             echo "benchmark:strategy" ;;
-        llm-orchestration-ontology|kg-traversal-expert|prompt-engineering-expert|world-model-expert|app-architecture-expert|performance-percentiles-expert|design-oracle|design-system-atlas)
+        llm-orchestration-ontology|kg-traversal-expert|prompt-engineering-expert|world-model-expert|app-architecture-expert|performance-percentiles-expert|design-oracle)
             echo "benchmark:architecture" ;;
-        data-analyzer-qwen|fact_validation_specialist|instruction_generation_specialist|opportunity_identification_specialist|digital_asset_curator)
+        fact_validation_specialist|instruction_generation_specialist|opportunity_identification_specialist|digital_asset_curator)
             echo "benchmark:data" ;;
         llama3|llama3.2|llama3.2:1b|llama3.2:3b|llama3.2_balanced|gemma2:9b|mistral:7b|phi3:mini|phi4|qwen2.5:7b|qwen2.5:1.5b|glm4:9b|yi:34b|quick-advisor-phi)
             echo "benchmark:base-llm" ;;
