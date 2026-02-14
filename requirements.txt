@@ -15,7 +15,7 @@ flask-limiter>=3.5.0      # Rate limiting for API endpoints
 orjson==3.11.6  # Note: 3.10+ has compatibility issues
 
 # Visualization (optional)
-matplotlib==3.7.2
+matplotlib==3.10.8
 seaborn==0.12.2
 plotly==6.5.2
 streamlit==1.37.0  # For web dashboard
